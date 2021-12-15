@@ -6,3 +6,5 @@ keboola.utils
 mock
 freezegun
 chartmogul==2.9.0
+pandas
+urllib
