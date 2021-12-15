@@ -33,7 +33,7 @@ CHARTMOGUL_BASEURL = 'https://api.chartmogul.com/v1/'
 
 try:
     with open('/code/src/mapping.json') as f:
-    # with open('mapping.json') as f:
+        # with open('mapping.json') as f:
         CHARTMOGUL_MAPPING = json.load(f)
 except Exception:
     logging.error('Error in loading mapping. Please contact support.')
