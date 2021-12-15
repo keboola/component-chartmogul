@@ -1,2 +1,2 @@
-Testing functional sample extractor for purposes of the python component template. 
-Implements partial Hubspot extractor using the public sandbox token.
+ChartMogul is the leading subscription analytics platform to measure, undertsand, and grow their recurring revenue.
+This component allows user to extract ChartMogul subscription data from the ChartMogul API. 

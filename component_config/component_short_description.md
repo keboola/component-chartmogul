@@ -1,1 +1,1 @@
-Testing functional sample extractor for purposes of the python component template. 
+The Leading Subcsription Analytics Platform to measure, undertsand, and grow their recurring revenue.
