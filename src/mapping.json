@@ -105,7 +105,7 @@
         }
     },
     "customers_subscriptions": {
-        "uuid": {
+        "id": {
             "type": "column",
             "mapping": {
                 "destination": "uuid",
@@ -114,6 +114,17 @@
         },
         "external_id": "external_id",
         "subscription_set_external_id": "subscription_set_external_id",
+        "quantity": "quantity",
+        "mrr": "mrr",
+        "arr": "arr",
+        "status": "status",
+        "plan": "plan",
+        "billing-cycle": "billing-cycle",
+        "billing-cycle-count": "billing-cycle-count",
+        "start-date": "start-date",
+        "end-date": "end-date",
+        "currency": "currency",
+        "currency-sign": "currency-sign",
         "plan_uuid": "plan_uuid",
         "data_source_uuid": "data_source_uuid",
         "cancellation_dates": {
@@ -144,7 +155,8 @@
         "asp": "asp",
         "arpa": "arpa",
         "arr": "arr",
-        "mrr": "mrr"
+        "mrr": "mrr",
+        "ltv": "ltv"
     },
     "invoices": {
         "uuid": {
@@ -171,6 +183,7 @@
                     }
                 },
                 "external_id": "external_id",
+                "description": "description",
                 "type": "type",
                 "subscription_uuid": "subscription_uuid",
                 "subscription_external_id": "subscription_external_id",
@@ -189,6 +202,7 @@
                 "discount_description": "discount_description",
                 "event_order": "event_order",
                 "account_code": "account_code",
+                "balance_transfer": "balance_transfer",
                 "parent_uuid": {
                     "type": "user",
                     "mapping": {
@@ -212,6 +226,9 @@
                 "type": "type",
                 "date": "date",
                 "result": "result",
+                "amount_in_cents": "amount_in_cents",
+                "transaction_fees_in_cents": "transaction_fees_in_cents",
+                "transaction_fees_currency": "transaction_fees_currency",
                 "parent_uuid": {
                     "type": "user",
                     "mapping": {

@@ -155,12 +155,16 @@ class Component(ComponentBase):
                 parent_key=parentKey
             )
 
+            endpoint_id = 'id' if endpoint == 'customers_subscriptions' else 'uuid'
             # Storing all UUIDS incases of child requests
-            UUIDS[endpoint] = UUIDS[endpoint] + [i['uuid']
+            UUIDS[endpoint] = UUIDS[endpoint] + [i[endpoint_id]
                                                  for i in data_in[endpoint_config['dataType']]]
 
-            if data_in['current_page'] == data_in['total_pages']:
+            if (not data_in.get('has_more') and data_in.get('has_more') is not None) \
+                    or (data_in.get('current_page') is not None
+                        and data_in.get('current_page') == data_in.get('total_pages')):
                 pagination_loop = False
+                break
             else:
                 endpoint_params['page'] += 1
 
@@ -239,11 +243,13 @@ class Component(ComponentBase):
                 'required') not in UUIDS else ''
 
             for i in UUIDS[endpoint_config.get('required')]:
+
+                logging.info(f'{endpoint}: {i}')
                 wildcard = '{{'+endpoint_config.get('required')+'_uuid}}'
                 endpoint_url_i = endpoint_url.replace(wildcard, i)
 
-                self._fetch_page(endpoint, endpoint_url_i,
-                                 endpoint_config, endpoint_mapping, parentKey=i)
+                state = self._fetch_page(endpoint, endpoint_url_i,
+                                         endpoint_config, endpoint_mapping, parentKey=i)
 
         # Parent endpoints with page pagination
         elif pagination_method == 'page':
