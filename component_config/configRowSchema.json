@@ -1,0 +1,112 @@
+{
+    "type": "object",
+    "title": "Row Configuration",
+    "required": [
+        "endpoints",
+        "incrementalLoad"
+    ],
+    "properties": {
+        "endpoints": {
+            "type": "string",
+            "title": "Endpoints",
+            "enum": [
+                "activities",
+                "customers",
+                "customers_subscriptions",
+                "invoices",
+                "key_metrics"
+            ],
+            "default": "customers",
+            "description": "[customers] will be included in the extraction in [customers_subscriptions].",
+            "proeprtyOrder": 100
+        },
+        "incrementalLoad": {
+            "type": "boolean",
+            "title": "Incremental Load",
+            "format": "checkbox",
+            "propertyOrder": 200
+        },
+        "additional_params_activities": {
+            "title": "Additional Query Parameters",
+            "type": "object",
+            "options": {
+                "dependencies": {
+                    "endpoints": "activities"
+                }
+            },
+            "required": [
+                "start-date",
+                "end-date"
+            ],
+            "properties": {
+                "start-date": {
+                    "type": "string",
+                    "title": "Start date",
+                    "description": "[Optional] - Example: 2021-01-01",
+                    "propertyOrder": 500
+                },
+                "end-date": {
+                    "type": "string",
+                    "title": "End date",
+                    "description": "[Optional] - Example: 2021-01-01",
+                    "propertyOrder": 600
+                }
+            },
+            "propertyOrder": 400
+        },
+        "additional_params_key_metrics": {
+            "title": "Additional Query Paramters",
+            "type": "object",
+            "options": {
+                "dependencies": {
+                    "endpoints": "key_metrics"
+                }
+            },
+            "required": [
+                "start-date",
+                "end-date",
+                "interval",
+                "geo",
+                "plans"
+            ],
+            "properties": {
+                "start-date": {
+                    "type": "string",
+                    "title": "Start date",
+                    "description": "[Required] - Example: 2021-01-01",
+                    "propertyOrder": 500
+                },
+                "end-date": {
+                    "type": "string",
+                    "title": "End date",
+                    "description": "[Required] - Example: 2021-01-01",
+                    "propertyOrder": 600
+                },
+                "interval": {
+                    "type": "string",
+                    "title": "Interval",
+                    "enum": [
+                        "month",
+                        "week",
+                        "day"
+                    ],
+                    "default": "month",
+                    "propertyOrder": 700
+                },
+                "geo": {
+                    "type": "string",
+                    "title": "geo",
+                    "description": "[Optional] A comma-separated list of ISO 3166-1 Alpha-2 formatted country codes to filter the results to, e.g. US,GB,DE.",
+                    "propertyOrder": 800
+                },
+                "plans": {
+                    "type": "string",
+                    "title": "plans",
+                    "description": "[Optional] A comma-separated list of plan names (as configured in your ChartMogul account) to filter the results to. Note that spaces must be url-encoded and the names are case-sensitive, e.g. Silver%20plan,Gold%20plan,Enterprise%20plan.",
+                    "propertyOrder": 900
+                }
+            },
+            "propertyOrder": 400
+        }
+    }
+}

@@ -1,0 +1,14 @@
+{
+    "type": "object",
+    "title": "Authentication",
+    "required": [
+        "#api_token"
+    ],
+    "properties": {
+        "#api_token": {
+            "type": "string",
+            "title": "API Token",
+            "propertyOrder": 100
+        }
+    }
+}

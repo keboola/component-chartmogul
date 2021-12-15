@@ -1,0 +1,224 @@
+{
+    "customers": {
+        "id": {
+            "type": "column",
+            "mapping": {
+                "destination": "id",
+                "primaryKey": true
+            }
+        },
+        "uuid": {
+            "type": "column",
+            "mapping": {
+                "destination": "uuid",
+                "primaryKey": true
+            }
+        },
+        "external_id": "external_id",
+        "external_ids": {
+            "type": "column",
+            "forceType": true,
+            "mapping": {
+                "destination": "external_ids"
+            }
+        },
+        "data_source_uuid": "data_source_uuid",
+        "data_source_uuids": {
+            "forceType": true,
+            "type": "column",
+            "mapping": {
+                "destination": "data_source_uuids"
+            }
+        },
+        "name": "name",
+        "company": "company",
+        "email": "email",
+        "status": "status",
+        "lead_created_at": "lead_created_at",
+        "free_trial_started_at": "free_trial_started_at",
+        "customer-since": "customer-since",
+        "city": "city",
+        "state": "state",
+        "country": "country",
+        "zip": "zip",
+        "attributes.tags": {
+            "forceType": true,
+            "type": "column",
+            "mapping": {
+                "destination": "attributes_tags"
+            }
+        },
+        "attributes.stripe.uid": "attributes_stripe_uid",
+        "attributes.stripe.coupon": "attributes_stripe_coupon",
+        "attributes.clearbit.company.name": "attributes_clearbit_company_name",
+        "attributes.clearbit.company.legalName": "attributes_clearbit_company_legalName",
+        "attributes.clearbit.company.domain": "attributes_clearbit_company_domain",
+        "attributes.clearbit.company.url": "attributes_clearbit_company_url",
+        "attributes.clearbit.company.category.sector": "attributes_clearbit_company_category_sector",
+        "attributes.clearbit.company.category.industryGroup": "attributes_clearbit_company_category_industryGroup",
+        "attributes.clearbit.company.category.industry": "attributes_clearbit_company_category_industry",
+        "attributes.clearbit.company.category.subIndustry": "attributes_clearbit_company_category_subIndustry",
+        "attributes.clearbit.company.metrics.raised": "attributes_clearbit_company_metrics_raised",
+        "attributes.clearbit.company.metrics.employees": "attributes_clearbit_company_metrics_employees",
+        "attributes.clearbit.company.metrics.googleRank": "attributes_clearbit_company_metrics_googleRank",
+        "attributes.clearbit.company.metrics.alexaGlobalRank": "attributes_clearbit_company_metrics_alexaGlobalRank",
+        "attributes.clearbit.company.metrics.marketCap": "attributes_clearbit_company_metrics_marketCap",
+        "attributes.clearbit.person.name.fullName": "attributes_clearbit_person_name_fullName",
+        "attributes.clearbit.person.employment.name": "attributes_clearbit_person_employment_name",
+        "attributes.custom.CAC": "attributes_custom_CAC",
+        "attributes.custom.utmCampaign": "attributes_custom_utmCampaign",
+        "attributes.custom.convertedAt": "attributes_custom_convertedAt",
+        "attributes.custom.pro": "attributes_custom_pro",
+        "attributes.custom.salesRep": "attributes_custom_salesRep",
+        "address.address.zip": "address_address.zip",
+        "address.city": "address_city",
+        "address.country": "address_country",
+        "address.state": "address_state",
+        "mrr": "mrr",
+        "arr": "arr",
+        "billing-system-url": "billing-system-url",
+        "chartmogul-url": "chartmogul-url",
+        "billing-system-type": "billing-system-type",
+        "currency": "currency",
+        "currency-sign": "currency-sign"
+    },
+    "activities": {
+        "description": "description",
+        "activity-mrr-movement": "activity-mrr-movement",
+        "activity-mrr": "activity-mrr",
+        "activity-arr": "activity-arr",
+        "date": "date",
+        "type": "type",
+        "currency": "currency",
+        "subscription-external-id": "subscription-external-id",
+        "plan-external-id": "plan-external-id",
+        "customer-name": "customer-name",
+        "customer-uuid": "customer-uuid",
+        "customer-external-id": "customer-external-id",
+        "billing-connector-uuid": "billing-connector-uuid",
+        "uuid": {
+            "type": "column",
+            "mapping": {
+                "destination": "uuid",
+                "primaryKey": true
+            }
+        }
+    },
+    "customers_subscriptions": {
+        "uuid": {
+            "type": "column",
+            "mapping": {
+                "destination": "uuid",
+                "primaryKey": true
+            }
+        },
+        "external_id": "external_id",
+        "subscription_set_external_id": "subscription_set_external_id",
+        "plan_uuid": "plan_uuid",
+        "data_source_uuid": "data_source_uuid",
+        "cancellation_dates": {
+            "type": "column",
+            "forceType": true,
+            "mapping": {
+                "destination": "cancellation_dates"
+            }
+        },
+        "parent_uuid": {
+            "type": "user",
+            "mapping": {
+                "destination": "customers_uuid"
+            }
+        }
+    },
+    "key_metrics": {
+        "date": {
+            "type": "column",
+            "mapping": {
+                "destination": "date",
+                "primaryKey": true
+            }
+        },
+        "customer-churn-rate": "customer-churn-rate",
+        "mrr-churn-rate": "mrr-churn-rate",
+        "customers": "customers",
+        "asp": "asp",
+        "arpa": "arpa",
+        "arr": "arr",
+        "mrr": "mrr"
+    },
+    "invoices": {
+        "uuid": {
+            "type": "column",
+            "mapping": {
+                "destination": "uuid",
+                "primaryKey": true
+            }
+        },
+        "customer_uuid": "customer_uuid",
+        "external_id": "external_id",
+        "date": "date",
+        "due_date": "due_date",
+        "currency": "currency",
+        "line_items": {
+            "type": "table",
+            "destination": "invoices_line_items",
+            "tableMapping": {
+                "uuid": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "uuid",
+                        "primaryKey": true
+                    }
+                },
+                "external_id": "external_id",
+                "type": "type",
+                "subscription_uuid": "subscription_uuid",
+                "subscription_external_id": "subscription_external_id",
+                "subscription_set_external_id": "subscription_set_external_id",
+                "plan_uuid": "plan_uuid",
+                "prorated": "prorated",
+                "service_period_start": "service_period_start",
+                "service_period_end": "service_period_end",
+                "amount_in_cents": "amount_in_cents",
+                "quantity": "quantity",
+                "discount_code": "discount_code",
+                "discount_amount_in_cents": "discount_amount_in_cents",
+                "tax_amount_in_cents": "tax_amount_in_cents",
+                "transaction_fees_in_cents": "transaction_fees_in_cents",
+                "transaction_fees_currency": "transaction_fees_currency",
+                "discount_description": "discount_description",
+                "event_order": "event_order",
+                "account_code": "account_code",
+                "parent_uuid": {
+                    "type": "user",
+                    "mapping": {
+                        "destination": "invoices_uuid"
+                    }
+                }
+            }
+        },
+        "transactions": {
+            "type": "table",
+            "destination": "invoices_transactions",
+            "tableMapping": {
+                "uuid": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "uuid",
+                        "primaryKey": true
+                    }
+                },
+                "external_id": "external_id",
+                "type": "type",
+                "date": "date",
+                "result": "result",
+                "parent_uuid": {
+                    "type": "user",
+                    "mapping": {
+                        "destination": "invoices_uuid"
+                    }
+                }
+            }
+        }
+    }
+}
