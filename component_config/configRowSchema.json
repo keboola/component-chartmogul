@@ -42,13 +42,13 @@
                 "start-date": {
                     "type": "string",
                     "title": "Start date",
-                    "description": "[Optional] - Example: 2021-01-01",
+                    "description": "[Optional] - Example: 2021-01-01, 1 day ago, 2 weeks ago",
                     "propertyOrder": 500
                 },
                 "end-date": {
                     "type": "string",
                     "title": "End date",
-                    "description": "[Optional] - Example: 2021-01-01",
+                    "description": "[Optional] - Example: 2021-01-01, 1 day ago, 2 weeks ago",
                     "propertyOrder": 600
                 }
             },
@@ -73,13 +73,13 @@
                 "start-date": {
                     "type": "string",
                     "title": "Start date",
-                    "description": "[Required] - Example: 2021-01-01",
+                    "description": "[Required] - Example: 2021-01-01, 1 day ago, 2 weeks ago",
                     "propertyOrder": 500
                 },
                 "end-date": {
                     "type": "string",
                     "title": "End date",
-                    "description": "[Required] - Example: 2021-01-01",
+                    "description": "[Required] - Example: 2021-01-01, 1 day ago, 2 weeks ago",
                     "propertyOrder": 600
                 },
                 "interval": {

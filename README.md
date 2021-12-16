@@ -28,8 +28,11 @@ To run this component, API keys are required. API keys are required to be `Activ
       4. `invoices`
       5. `key_metrics`
   - Incremental Load
-  - Start date - [REQ for `key_metrics`][OPT for `activities`] Start date of the request. Eg: 2021-01-01
-  - End date - [REQ for `key_metrics`][OPT for `activities`] End date of the request. Eg: 2021-01-01
+  - Start date - [REQ for `key_metrics`][OPT for `activities`] 
+      - Start date of the request. Eg: 2021-01-01, 1 day ago, 2 weeks ago
+  - End date - [REQ for `key_metrics`][OPT for `activities`] 
+      - End date of the request. Eg: 2021-01-01, 1 day ago, 2 weeks ago
+      - If End Date is specified for `activities`, Start Date will be required.
   - Interval - [REQ for `key_metrics`]
       1. day
       2. week
@@ -69,7 +72,7 @@ If you need more endpoints, please submit your request to
 
 
 Development
------------
+===================
 
 If required, change local data folder (the `CUSTOM_FOLDER` placeholder) path to
 your custom path in the docker-compose file:

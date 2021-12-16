@@ -7,6 +7,7 @@ import json
 import logging
 import requests
 from datetime import datetime  # noqa
+import dateparser
 from urllib.parse import urljoin
 
 from keboola.component.base import ComponentBase
@@ -32,8 +33,8 @@ REQUIRED_IMAGE_PARS = []
 CHARTMOGUL_BASEURL = 'https://api.chartmogul.com/v1/'
 
 try:
-    with open('/code/src/mapping.json') as f:
-        # with open('mapping.json') as f:
+    # with open('/code/src/mapping.json') as f:
+    with open('mapping.json') as f:
         CHARTMOGUL_MAPPING = json.load(f)
 except Exception:
     logging.error('Error in loading mapping. Please contact support.')
@@ -111,12 +112,47 @@ class Component(ComponentBase):
             logging.error(f'API Token error: {err}')
             sys.exit(1)
 
-        # 4 - endpoint key_metrics requires start-date and end-date
-        additional_params = params.get('additional_params_key_metrics')
+        # Fetching values for additional_params
         if endpoints == 'key_metrics':
-            if not additional_params.get('start-date') or not additional_params.get('end-date'):
+            additional_params = params.get('additional_params_key_metrics')
+        elif endpoints == 'activities':
+            additional_params = params.get('additional_params_activities')
+        else:
+            additional_params = {}
+
+        start_date = additional_params.get('start-date')
+        end_date = additional_params.get('end-date')
+
+        # 4 - endpoint key_metrics requires start-date and end-date
+        if endpoints == 'key_metrics':
+            if not start_date or not end_date:
                 logging.error('[Start date] and [End Date] are required.')
                 sys.exit(1)
+
+            else:
+                start_date_form = dateparser.parse(start_date)
+                end_date_form = dateparser.parse(end_date)
+                day_diff = (end_date_form-start_date_form).days
+
+                if day_diff < 0:
+                    logging.error('[Start Date] cannot exceed [End Date]')
+                    sys.exit(1)
+
+        # 5 - validate start-date and end-date on activities endpoint
+        if endpoints == 'activities':
+
+            if end_date and not start_date:
+                logging.error('Please specify [Start Date] when [End Date] is specified.')
+                sys.exit(1)
+
+            elif start_date and end_date:
+                start_date_form = dateparser.parse(start_date)
+                end_date_form = dateparser.parse(end_date)
+                day_diff = (end_date_form-start_date_form).days
+
+                if day_diff < 0:
+                    logging.error('[Start Date] cannot exceed [End Date]')
+                    sys.exit(1)
 
     @staticmethod
     def get_request(url, params, token):
@@ -289,6 +325,12 @@ class Component(ComponentBase):
 
         # Previous state
         previous_state = self.get_state_file()
+
+        # Parse date into the required format
+        if additional_params.get('start-date'):
+            additional_params['start-date'] = dateparser.parse(additional_params['start-date']).strftime("%Y-%m-%d")
+        if additional_params.get('end-date'):
+            additional_params['end-date'] = dateparser.parse(additional_params['end-date']).strftime("%Y-%m-%d")
 
         # Fetch
         state = self.fetch(params.get(KEY_ENDPOINTS),
