@@ -234,7 +234,8 @@ class Component(ComponentBase):
                 incremental=self.incremental,
             )
 
-            LAST_UUID = data_in[endpoint_config['dataType']][-1]['uuid']
+            if data_in[endpoint_config['dataType']]:
+                LAST_UUID = data_in[endpoint_config['dataType']][-1]['uuid']
             endpoint_params = {'start-after': LAST_UUID, 'per_page': 200}
 
             if not data_in['has_more']:
