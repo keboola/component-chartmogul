@@ -33,8 +33,8 @@ REQUIRED_IMAGE_PARS = []
 CHARTMOGUL_BASEURL = 'https://api.chartmogul.com/v1/'
 
 try:
-    with open('/code/src/mapping.json') as f:
-        # with open('mapping.json') as f:
+    # with open('/code/src/mapping.json') as f:
+    with open('mapping.json') as f:
         CHARTMOGUL_MAPPING = json.load(f)
 except Exception:
     logging.error('Error in loading mapping. Please contact support.')
@@ -318,7 +318,7 @@ class Component(ComponentBase):
         elif params.get(KEY_ENDPOINTS) == 'key_metrics':
             additional_params = params.get('additional_params_key_metrics')
         else:
-            additional_params = None
+            additional_params = {}
 
         # Validating user inputs
         self.validate_params(params)
