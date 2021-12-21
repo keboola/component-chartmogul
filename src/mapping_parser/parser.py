@@ -1,17 +1,20 @@
 import os
 import json
-import logging  # noqa
-import sys  # noqa
 import pandas as pd
 
 
+with open('/code/src/mapping_parser/mapping.json') as f:
+    # with open('mapping_parser/mapping.json') as f:
+    CHARTMOGUL_MAPPING = json.load(f)
+
+
 class MappingParser():
-    def __init__(self, destination, endpoint, endpoint_data, mapping, parent_key=None, incremental=False):
+    def __init__(self, destination, endpoint, endpoint_data, parent_key=None, incremental=False, mapping=None):
 
         self.destination = destination
         self.endpoint = endpoint
         self.endpoint_data = endpoint_data
-        self.mapping = mapping
+        self.mapping = mapping if mapping else CHARTMOGUL_MAPPING[endpoint]
         self.parent_key = parent_key
         self.output = []
         self.primary_key = []
@@ -34,7 +37,8 @@ class MappingParser():
             row_json = {}
 
             for m in self.mapping:
-                col_type = self.mapping[m].get('type') if type(self.mapping[m]) != str else 'string'
+                col_type = self.mapping[m].get('type') if type(
+                    self.mapping[m]) != str else 'string'
 
                 if col_type == 'string':
                     key = self.mapping[m]
@@ -77,7 +81,8 @@ class MappingParser():
 
             self.output.append(row_json)
 
-    def _fetch_value(self, row, key):
+    @staticmethod
+    def _fetch_value(row, key):
         '''
         Fetching value from a nested object
         '''
@@ -98,7 +103,7 @@ class MappingParser():
         if df_json:
             data_output = pd.DataFrame(df_json, dtype=str)
             if not os.path.isfile(output_filename):
-                with open(output_filename, 'a') as b:
+                with open(output_filename, 'w') as b:
                     data_output.to_csv(b, index=False)
                 b.close()
             else:
