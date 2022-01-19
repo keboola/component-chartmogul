@@ -42,7 +42,6 @@
                 "start-date": {
                     "type": "string",
                     "title": "Start date",
-                    "description": "[Optional] - Example: 2021-01-01, 1 day ago, 2 weeks ago",
                     "propertyOrder": 500
                 },
                 "end-date": {

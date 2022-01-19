@@ -1,7 +1,9 @@
 import requests
 import logging
 from urllib.parse import urljoin
+import asyncio
 from mapping_parser.parser import MappingParser
+
 
 CHARTMOGUL_BASEURL = 'https://api.chartmogul.com/v1/'
 
@@ -66,6 +68,25 @@ class ChartMogul_client():
             self.fetch(endpoint_config.get('required')) if endpoint_config.get(
                 'required') not in self.UUIDS else ''
 
+            print(self.UUIDS)
+
+            '''async test'''
+
+            loop = asyncio.get_event_loop()
+            tasks = []
+
+            for i in self.UUIDS[endpoint_config.get('required')]:
+                logging.info(f'{endpoint}: {i}')
+                wildcard = '{{'+endpoint_config.get('required')+'_uuid}}'
+                endpoint_url_i = endpoint_url.replace(wildcard, i)
+
+                tasks.append(self._fetch_child_page(endpoint, endpoint_url_i,
+                                                    endpoint_config, parentKey=i))
+
+            loop.run_until_complete(asyncio.wait(tasks))
+            loop.close()
+
+            '''
             for i in self.UUIDS[endpoint_config.get('required')]:
 
                 logging.info(f'{endpoint}: {i}')
@@ -74,6 +95,7 @@ class ChartMogul_client():
 
                 self._fetch_page(endpoint, endpoint_url_i,
                                  endpoint_config, parentKey=i)
+            '''
 
         # Parent endpoints with page pagination
         elif pagination_method == 'page':
@@ -183,5 +205,45 @@ class ChartMogul_client():
             endpoint_data=data_in[endpoint_config['dataType']],
             incremental=self.INCREMENTAL,
         )
+
+        self.STATE = {}
+
+    async def _fetch_child_page(self, endpoint, endpoint_url, endpoint_config, parentKey=None):
+
+        pagination_loop = True
+        endpoint_params = {
+            'page': 1,
+            'per_page': 200
+        }
+        self.UUIDS[endpoint] = []
+
+        while pagination_loop:
+
+            logging.info(
+                f'Extracting [{endpoint}] - [{parentKey}] - Page {endpoint_params["page"]}')
+
+            data_in = self.get_request(
+                endpoint_url, endpoint_params, self.API_TOKEN)
+
+            MappingParser(
+                destination=self.DESTINATION,
+                endpoint=endpoint,
+                endpoint_data=data_in[endpoint_config['dataType']],
+                incremental=self.INCREMENTAL,
+                parent_key=parentKey
+            )
+
+            endpoint_id = 'id' if endpoint == 'customers_subscriptions' else 'uuid'
+            # Storing all UUIDS incases of child requests
+            self.UUIDS[endpoint] = self.UUIDS[endpoint] + [i[endpoint_id]
+                                                           for i in data_in[endpoint_config['dataType']]]
+
+            if (not data_in.get('has_more') and data_in.get('has_more') is not None) \
+                    or (data_in.get('current_page') is not None
+                        and data_in.get('current_page') == data_in.get('total_pages')):
+                pagination_loop = False
+                break
+            else:
+                endpoint_params['page'] += 1
 
         self.STATE = {}
