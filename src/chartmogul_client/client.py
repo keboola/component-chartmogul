@@ -68,8 +68,6 @@ class ChartMogul_client():
             self.fetch(endpoint_config.get('required')) if endpoint_config.get(
                 'required') not in self.UUIDS else ''
 
-            print(self.UUIDS)
-
             '''async test'''
 
             loop = asyncio.get_event_loop()
