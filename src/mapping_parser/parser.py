@@ -13,7 +13,7 @@ class MappingParser():
 
         self.destination = destination
         self.endpoint = endpoint
-        self.endpoint_data = endpoint_data
+        self.endpoint_data = endpoint_data if endpoint_data else []
         self.mapping = mapping if mapping else CHARTMOGUL_MAPPING[endpoint]
         self.parent_key = parent_key
         self.output = []
