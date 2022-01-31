@@ -130,7 +130,7 @@ class ChartMogul_client():
             MappingParser(
                 destination=self.DESTINATION,
                 endpoint=endpoint,
-                endpoint_data=data_in[endpoint_config['dataType']],
+                endpoint_data=data_in.get(endpoint_config['dataType']),
                 incremental=self.INCREMENTAL,
                 parent_key=parentKey
             )
@@ -140,6 +140,7 @@ class ChartMogul_client():
             self.UUIDS[endpoint] = self.UUIDS[endpoint] + [i[endpoint_id]
                                                            for i in data_in[endpoint_config['dataType']]]
 
+            # Pagination logic
             if (not data_in.get('has_more') and data_in.get('has_more') is not None) \
                     or (data_in.get('current_page') is not None
                         and data_in.get('current_page') == data_in.get('total_pages')):
@@ -172,7 +173,7 @@ class ChartMogul_client():
             MappingParser(
                 destination=self.DESTINATION,
                 endpoint=endpoint,
-                endpoint_data=data_in[endpoint_config['dataType']],
+                endpoint_data=data_in.get(endpoint_config['dataType']),
                 incremental=self.INCREMENTAL,
             )
 
@@ -200,7 +201,7 @@ class ChartMogul_client():
         MappingParser(
             destination=self.DESTINATION,
             endpoint=endpoint,
-            endpoint_data=data_in[endpoint_config['dataType']],
+            endpoint_data=data_in.get(endpoint_config['dataType']),
             incremental=self.INCREMENTAL,
         )
 
