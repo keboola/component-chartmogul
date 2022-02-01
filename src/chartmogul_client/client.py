@@ -47,7 +47,7 @@ class ChartMogul_client():
         self.DESTINATION = destination
         self.API_TOKEN = api_token
         self.INCREMENTAL = incremental
-        self.STATE = state
+        self.state = state
 
     @staticmethod
     def get_request(url, params, token):
@@ -148,14 +148,14 @@ class ChartMogul_client():
             else:
                 endpoint_params['page'] += 1
 
-        self.STATE = {}
+        self.state = {}
 
     def _fetch_activities(self, endpoint, endpoint_url, endpoint_config, additional_params):
 
         pagination_loop = True
         endpoint_params = {'per_page': 200}
         LAST_UUID = ''
-        if self.STATE and self.INCREMENTAL:
+        if self.state and self.INCREMENTAL:
             endpoint_params['start-after'] = self.state['start-after']
         else:
             for p in additional_params:
@@ -183,7 +183,7 @@ class ChartMogul_client():
             if not data_in['has_more']:
                 pagination_loop = False
 
-        self.STATE = {endpoint: endpoint_params}
+        self.state = {endpoint: endpoint_params}
 
     def _fetch_key_metrics(self, endpoint, endpoint_url, endpoint_config, additional_params):
 
@@ -204,7 +204,7 @@ class ChartMogul_client():
             incremental=self.INCREMENTAL,
         )
 
-        self.STATE = {}
+        self.state = {}
 
     async def _fetch_child_page(self, endpoint, endpoint_url, endpoint_config, parentKey=None):
 
@@ -244,4 +244,4 @@ class ChartMogul_client():
             else:
                 endpoint_params['page'] += 1
 
-        self.STATE = {}
+        self.state = {}

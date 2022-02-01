@@ -2,10 +2,12 @@ keboola.component==1.3.5
 # various util methods, e.g. relative date generation ('1 day ago'=> date)
 keboola.utils
 # Convenient library providing base for HTTP clients
-# keboola.http-client
-mock
-freezegun
+keboola.http-client
+mock~=4.0.3
+freezegun~=1.1.0
 chartmogul==2.9.0
-pandas
+pandas~=1.4.0
 urllib3
-dateparser
+dateparser~=1.1.0
+https://bitbucket.org/kds_consulting_team/json2csv_parser/get/0.0.3.zip#egg=json2csv_parser
+requests~=2.27.1

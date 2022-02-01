@@ -2,10 +2,12 @@ import os
 import json
 import pandas as pd
 
-
-with open('/code/src/mapping_parser/mapping.json') as f:
-    # with open('mapping_parser/mapping.json') as f:
-    CHARTMOGUL_MAPPING = json.load(f)
+try:
+    with open('/code/src/mapping_parser/mapping.json') as f:
+        CHARTMOGUL_MAPPING = json.load(f)
+except FileNotFoundError:
+    with open('mapping_parser/mapping.json') as f:
+        CHARTMOGUL_MAPPING = json.load(f)
 
 
 class MappingParser():
