@@ -83,7 +83,7 @@ class ChartMogulClient(HttpClient):
             if additional_params[p]:
                 endpoint_params[p] = additional_params[p]
 
-        logging.info(f'Extracting Key Metrics')
+        logging.info('Extracting Key Metrics')
 
         try:
             key_metric_data = self.get(endpoint_path=KEY_METRICS_ENDPOINT, params=endpoint_params)
@@ -139,7 +139,7 @@ class ChartMogulClient(HttpClient):
                                                 endpoint_url=endpoint_url,
                                                 use_pages=True,
                                                 data_type=data_type,
-                                                log = False):
+                                                log=False):
             for result in results:
                 result["uuid"] = parent_key
                 paged_results.append(result)

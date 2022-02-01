@@ -13,7 +13,7 @@ from keboola.component.exceptions import UserException
 
 from flatten_json_parser import FlattenJsonParser
 import chartmogul
-from chartmogul_client.client import ChartMogul_client
+# from chartmogul_client.client import ChartMogul_client
 from chartmogul_client_v2.client import ChartMogulClient
 
 # configuration variables
@@ -135,19 +135,19 @@ class Component(ComponentBase):
         params = self.configuration.parameters
 
         # Setting up additional params
-        # TODO : this will be done in the seperate endpoints
-        if params.get(KEY_ENDPOINTS) == 'activities':
-            additional_params = params.get('additional_params_activities')
-        elif params.get(KEY_ENDPOINTS) == 'key_metrics':
-            additional_params = params.get('additional_params_key_metrics')
-        else:
-            additional_params = {}
+        # # TODO : this will be done in the seperate endpoints
+        # if params.get(KEY_ENDPOINTS) == 'activities':
+        #     additional_params = params.get('additional_params_activities')
+        # elif params.get(KEY_ENDPOINTS) == 'key_metrics':
+        #     additional_params = params.get('additional_params_key_metrics')
+        # else:
+        #     additional_params = {}
 
         # Validating user inputs
         self.validate_params(params)
 
         # Previous state
-        previous_state = self.get_state_file()
+        # previous_state = self.get_state_file()
         #
         # # TODO : this will be done in the seperate endpoints
         # # Parse date into the required format
