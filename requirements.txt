@@ -9,3 +9,4 @@ chartmogul==2.9.0
 pandas
 urllib3
 dateparser
+keboola.csvwriter

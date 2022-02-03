@@ -137,7 +137,7 @@ class ChartMogul_client():
         endpoint_params = {'per_page': 200}
         LAST_UUID = ''
         if self.STATE and self.INCREMENTAL:
-            endpoint_params['start-after'] = self.state['start-after']
+            endpoint_params['start-after'] = self.STATE.get('start-after')
         else:
             for p in additional_params:
                 if additional_params[p]:
@@ -173,7 +173,7 @@ class ChartMogul_client():
             if additional_params[p]:
                 endpoint_params[p] = additional_params[p]
 
-        logging.info(f'Extracting[{endpoint}]')
+        logging.info(f'Extracting [{endpoint}]')
 
         data_in = self.get_request(
             endpoint_url, endpoint_params, self.API_TOKEN)
