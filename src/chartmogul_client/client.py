@@ -57,7 +57,7 @@ class ChartMogul_client():
         try:
             return response.json()
         except Exception as err:
-            raise UserException(f'Error in fetching request\'s JSON: {response.text}')
+            raise UserException(f'Error in fetching request\'s JSON: {err}')
 
     def fetch(self, endpoint, additional_params=None):
 
