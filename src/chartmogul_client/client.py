@@ -1,8 +1,8 @@
-import requests
 import logging
 from urllib.parse import urljoin
-from keboola.component.exceptions import UserException
 
+import requests
+from keboola.component.exceptions import UserException
 from mapping_parser.parser import MappingParser
 
 CHARTMOGUL_BASEURL = 'https://api.chartmogul.com/v1/'
@@ -57,7 +57,7 @@ class ChartMogul_client():
         try:
             return response.json()
         except Exception as err:
-            raise UserException(f'Error in fetching request\'s JSON: {err}')
+            raise UserException(f'Error in parsing request\'s JSON: {err}. Response: {response.content}')
 
     def fetch(self, endpoint, additional_params=None):
 
@@ -72,9 +72,8 @@ class ChartMogul_client():
                 'required') not in self.UUIDS else ''
 
             for i in self.UUIDS[endpoint_config.get('required')]:
-
                 logging.info(f'{endpoint}: {i}')
-                wildcard = '{{'+endpoint_config.get('required')+'_uuid}}'
+                wildcard = '{{' + endpoint_config.get('required') + '_uuid}}'
                 endpoint_url_i = endpoint_url.replace(wildcard, i)
 
                 self._fetch_page(endpoint, endpoint_url_i,
