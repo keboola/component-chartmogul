@@ -122,7 +122,7 @@ class ChartMogul_client():
             endpoint_id = 'id' if endpoint == 'customers_subscriptions' else 'uuid'
             # Storing all UUIDS incases of child requests
             self.UUIDS[endpoint] = self.UUIDS[endpoint] + [i[endpoint_id]
-                                                           for i in data_in[endpoint_config['dataType']]]
+                                                           for i in data_in.get(endpoint_config['dataType'], [])]
 
             # Pagination logic
             if (not data_in.get('has_more') and data_in.get('has_more') is not None) \
