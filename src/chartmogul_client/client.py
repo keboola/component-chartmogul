@@ -1,8 +1,9 @@
 import logging
 from urllib.parse import urljoin
 
-import requests
 from keboola.component.exceptions import UserException
+from keboola.http_client import HttpClient
+
 from mapping_parser.parser import MappingParser
 
 CHARTMOGUL_BASEURL = 'https://api.chartmogul.com/v1/'
@@ -37,8 +38,9 @@ CHARTMOGUL_ENDPOINT_CONFIGS = {
 }
 
 
-class ChartMogul_client():
+class ChartMogul_clientHttpClient(HttpClient):
     def __init__(self, destination, api_token, incremental=False, state=None):
+        super().__init__('', max_retries=5, status_forcelist=(500, 502, 504))
 
         # Storing UUIDs in case of child requests
         self.UUIDS = {}
@@ -49,10 +51,9 @@ class ChartMogul_client():
         self.INCREMENTAL = incremental
         self.STATE = state
 
-    @staticmethod
-    def get_request(url, params, token):
+    def get_request(self, url, params, token):
 
-        response = requests.get(url, params=params, auth=(token, ''))
+        response = self.get_raw(url, params=params, auth=(token, ''))
 
         try:
             return response.json()

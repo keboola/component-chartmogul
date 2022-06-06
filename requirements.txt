@@ -1,4 +1,5 @@
 keboola.component==1.3.5
+keboola.http-client
 # various util methods, e.g. relative date generation ('1 day ago'=> date)
 keboola.utils
 # Convenient library providing base for HTTP clients
