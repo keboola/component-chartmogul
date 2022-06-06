@@ -38,7 +38,7 @@ CHARTMOGUL_ENDPOINT_CONFIGS = {
 }
 
 
-class ChartMogul_clientHttpClient(HttpClient):
+class ChartMogul_client(HttpClient):
     def __init__(self, destination, api_token, incremental=False, state=None):
         super().__init__('', max_retries=5, status_forcelist=(500, 502, 504))
 
