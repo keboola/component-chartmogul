@@ -40,7 +40,7 @@ CHARTMOGUL_ENDPOINT_CONFIGS = {
 
 class ChartMogul_client(HttpClient):
     def __init__(self, destination, api_token, incremental=False, state=None):
-        super().__init__('', max_retries=5, status_forcelist=(500, 502, 504))
+        super().__init__('', max_retries=10, status_forcelist=(500, 502, 504))
 
         # Storing UUIDs in case of child requests
         self.UUIDS = {}
