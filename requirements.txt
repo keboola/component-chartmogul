@@ -6,6 +6,7 @@ keboola.utils
 # keboola.http-client
 mock
 freezegun
+backoff
 chartmogul==2.9.0
 pandas
 urllib3

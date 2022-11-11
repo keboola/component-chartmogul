@@ -1,6 +1,8 @@
 import logging
+from json import JSONDecodeError
 from urllib.parse import urljoin
 
+import backoff as backoff
 from keboola.component.exceptions import UserException
 from keboola.http_client import HttpClient
 
@@ -38,6 +40,10 @@ CHARTMOGUL_ENDPOINT_CONFIGS = {
 }
 
 
+class RetryableHttpException(Exception):
+    pass
+
+
 class ChartMogul_client(HttpClient):
     def __init__(self, destination, api_token, incremental=False, state=None):
         super().__init__('', max_retries=10, status_forcelist=(500, 502, 504))
@@ -51,12 +57,19 @@ class ChartMogul_client(HttpClient):
         self.INCREMENTAL = incremental
         self.STATE = state
 
+    @backoff.on_exception(backoff.expo,
+                          RetryableHttpException,
+                          max_tries=8,
+                          jitter=None)
     def get_request(self, url, params, token):
 
         response = self.get_raw(url, params=params, auth=(token, ''))
 
         try:
             return response.json()
+        except JSONDecodeError as err:
+            if '503 Service Temporarily Unavailable' in response.text:
+                raise RetryableHttpException('Error HTTP 503 Service Temporarily Unavailable')
         except Exception as err:
             raise UserException(f'Error in parsing request\'s JSON: {err}. Response: {response.content}')
 
