@@ -69,9 +69,9 @@ class ChartMogul_client(HttpClient):
             return response.json()
         except JSONDecodeError as err:
             if '503 Service Temporarily Unavailable' in response.text:
-                raise RetryableHttpException('Error HTTP 503 Service Temporarily Unavailable')
+                raise RetryableHttpException('Error HTTP 503 Service Temporarily Unavailable') from err
         except Exception as err:
-            raise UserException(f'Error in parsing request\'s JSON: {err}. Response: {response.content}')
+            raise UserException(f'Error in parsing request\'s JSON: {err}. Response: {response.content}') from err
 
     def fetch(self, endpoint, additional_params=None):
 
