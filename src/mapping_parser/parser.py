@@ -1,20 +1,21 @@
-import os
 import json
+import os
+
 import pandas as pd
 
 
-with open('/code/src/mapping_parser/mapping.json') as f:
-    # with open('mapping_parser/mapping.json') as f:
-    CHARTMOGUL_MAPPING = json.load(f)
-
-
-class MappingParser():
+class MappingParser:
     def __init__(self, destination, endpoint, endpoint_data, parent_key=None, incremental=False, mapping=None):
 
+        if not mapping:
+            with open('/code/src/mapping_parser/mapping.json') as f:
+                # with open('mapping_parser/mapping.json') as f:
+                mapping = json.load(f)[endpoint]
+
+        self.mapping = mapping
         self.destination = destination
         self.endpoint = endpoint
         self.endpoint_data = endpoint_data if endpoint_data else []
-        self.mapping = mapping if mapping else CHARTMOGUL_MAPPING[endpoint]
         self.parent_key = parent_key
         self.output = []
         self.primary_key = []

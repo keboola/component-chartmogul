@@ -1,8 +1,11 @@
 import logging
+from json import JSONDecodeError
 from urllib.parse import urljoin
 
-import requests
+import backoff as backoff
 from keboola.component.exceptions import UserException
+from keboola.http_client import HttpClient
+
 from mapping_parser.parser import MappingParser
 
 CHARTMOGUL_BASEURL = 'https://api.chartmogul.com/v1/'
@@ -37,8 +40,13 @@ CHARTMOGUL_ENDPOINT_CONFIGS = {
 }
 
 
-class ChartMogul_client():
+class RetryableHttpException(Exception):
+    pass
+
+
+class ChartMogul_client(HttpClient):
     def __init__(self, destination, api_token, incremental=False, state=None):
+        super().__init__('', max_retries=10, status_forcelist=(500, 502, 504))
 
         # Storing UUIDs in case of child requests
         self.UUIDS = {}
@@ -49,15 +57,21 @@ class ChartMogul_client():
         self.INCREMENTAL = incremental
         self.STATE = state
 
-    @staticmethod
-    def get_request(url, params, token):
+    @backoff.on_exception(backoff.expo,
+                          RetryableHttpException,
+                          max_tries=8,
+                          jitter=None)
+    def get_request(self, url, params, token):
 
-        response = requests.get(url, params=params, auth=(token, ''))
+        response = self.get_raw(url, params=params, auth=(token, ''))
 
         try:
             return response.json()
+        except JSONDecodeError as err:
+            if '503 Service Temporarily Unavailable' in response.text:
+                raise RetryableHttpException('Error HTTP 503 Service Temporarily Unavailable') from err
         except Exception as err:
-            raise UserException(f'Error in parsing request\'s JSON: {err}. Response: {response.content}')
+            raise UserException(f'Error in parsing request\'s JSON: {err}. Response: {response.content}') from err
 
     def fetch(self, endpoint, additional_params=None):
 
