@@ -45,6 +45,7 @@ class Component(ComponentBase):
 
     def __init__(self):
         super().__init__()
+        self.columns = {}
 
     def run(self):
         '''
@@ -105,10 +106,18 @@ class Component(ComponentBase):
                             wr.writerow(row)
 
                     table = self.create_out_table_definition(subfolder, is_sliced=True, columns=wr.fieldnames)
+                    self.columns[subfolder] = wr.fieldnames
                     self.write_manifest(table)
 
         # Updating state
-        self.write_state_file(cm_client.STATE)
+        new_statefile = cm_client.STATE
+
+        if "columns" not in new_statefile:
+            new_statefile["columns"] = {}
+
+        for table in self.columns:
+            new_statefile["columns"][table] = self.columns.get(table)
+        self.write_state_file(new_statefile)
 
     def validate_params(self, params):
         '''
