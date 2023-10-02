@@ -55,8 +55,7 @@ class Component(ComponentBase):
             raise UserException('Please select an endpoint.')
 
         # 3 - test if API token works
-        config = chartmogul.Config(
-            params[KEY_API_TOKEN], params[KEY_API_TOKEN])
+        config = chartmogul.Config(params[KEY_API_TOKEN])
         try:
             chartmogul.Ping.ping(config).get()
         except Exception as err:

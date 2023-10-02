@@ -51,7 +51,7 @@ class ChartMogul_client(HttpClient):
         # Storing UUIDs in case of child requests
         self.UUIDS = {}
 
-        # Request paramters
+        # Request parameters
         self.DESTINATION = destination
         self.API_TOKEN = api_token
         self.INCREMENTAL = incremental

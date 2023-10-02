@@ -7,7 +7,7 @@ keboola.utils
 mock
 freezegun
 backoff
-chartmogul==2.9.0
+chartmogul==3.1.2
 pandas
 urllib3
 dateparser
