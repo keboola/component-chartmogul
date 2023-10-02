@@ -38,10 +38,7 @@ class MappingParser:
             row_json = {}
 
             for m in self.mapping:
-                if isinstance(self.mapping[m], str):
-                    col_type = 'string'
-                else:
-                    col_type = self.mapping[m].get('type')
+                col_type = self.mapping[m].get('type', 'string') if not isinstance(self.mapping[m], str) else 'string'
 
                 if col_type == 'string':
                     key = self.mapping[m]
