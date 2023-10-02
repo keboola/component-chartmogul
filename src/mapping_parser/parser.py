@@ -22,7 +22,7 @@ class MappingParser:
         self.incremental = incremental
 
         # Countermeasures for response coming in as DICT
-        if type(self.endpoint_data) == dict:
+        if isinstance(self.endpoint_data, dict):
             self.endpoint_data = []
             self.endpoint_data.append(endpoint_data)
 
@@ -38,8 +38,7 @@ class MappingParser:
             row_json = {}
 
             for m in self.mapping:
-                col_type = self.mapping[m].get('type') if type(
-                    self.mapping[m]) != str else 'string'
+                col_type = self.mapping[m].get('type', 'string') if not isinstance(self.mapping[m], str) else 'string'
 
                 if col_type == 'string':
                     key = self.mapping[m]
