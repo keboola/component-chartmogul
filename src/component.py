@@ -2,14 +2,18 @@
 Keboola ChartMogul Extractor
 '''
 
-import logging
+import asyncio
 import dateparser
+import json
+import logging
+import os
 
 from keboola.component.base import ComponentBase
 from keboola.component.exceptions import UserException
+from keboola.csvwriter import ElasticDictWriter
 
 import chartmogul
-from chartmogul_client.client import ChartMogul_client
+from chartmogul_client.client import ChartMogulClient
 
 # configuration variables
 KEY_API_TOKEN = '#api_token'
@@ -25,6 +29,8 @@ REQUIRED_PARAMETERS = [
 ]
 REQUIRED_IMAGE_PARS = []
 
+BATCH_SIZE = 10
+
 
 class Component(ComponentBase):
     """
@@ -39,6 +45,70 @@ class Component(ComponentBase):
 
     def __init__(self):
         super().__init__()
+
+    def run(self):
+        '''
+        Main execution code
+        '''
+
+        params = self.configuration.parameters
+
+        # Setting up additional params
+        if params.get(KEY_ENDPOINTS) == 'activities':
+            additional_params = params.get('additional_params_activities')
+        elif params.get(KEY_ENDPOINTS) == 'key_metrics':
+            additional_params = params.get('additional_params_key_metrics')
+        else:
+            additional_params = {}
+
+        # Validating user inputs
+        self.validate_params(params)
+
+        # Previous state
+        previous_state = self.get_state_file()
+
+        # Parse date into the required format
+        if additional_params.get('start-date'):
+            additional_params['start-date'] = dateparser.parse(
+                additional_params['start-date']).strftime("%Y-%m-%d")
+        if additional_params.get('end-date'):
+            additional_params['end-date'] = dateparser.parse(
+                additional_params['end-date']).strftime("%Y-%m-%d")
+
+        temp_path = os.path.join(self.data_folder_path, "temp")
+
+        # Custom ChartMogul client
+        cm_client = ChartMogulClient(
+            api_token=params.get(KEY_API_TOKEN),
+            incremental=params.get(KEY_INCREMENTAL_LOAD),
+            state=previous_state,
+            destination=temp_path)
+
+        # Process endpoint
+        endpoint = params.get(KEY_ENDPOINTS)
+        asyncio.run(cm_client.fetch(endpoint=endpoint, additional_params=additional_params))
+
+        if os.path.isdir(temp_path):
+            for subfolder in os.listdir(temp_path):
+
+                table_name = f"{subfolder}.csv"
+                table_path = os.path.join(self.tables_out_path, table_name)
+
+                if os.path.isdir(os.path.join(temp_path, subfolder)):
+                    with ElasticDictWriter(table_path, []) as wr:
+                        wr.writeheader()
+                        for json_file in os.listdir(os.path.join(temp_path, subfolder)):
+                            json_file_path = os.path.join(temp_path, subfolder, json_file)
+                            with open(json_file_path, 'r') as file:
+                                row = json.load(file)
+
+                            wr.writerow(row)
+
+                    table = self.create_out_table_definition(subfolder, is_sliced=True, columns=wr.fieldnames)
+                    self.write_manifest(table)
+
+        # Updating state
+        self.write_state_file(cm_client.STATE)
 
     def validate_params(self, params):
         '''
@@ -65,7 +135,7 @@ class Component(ComponentBase):
         if endpoints == 'key_metrics':
             additional_params = params.get('additional_params_key_metrics')
         elif endpoints == 'activities':
-            additional_params = params.get('additional_params_activities')
+            additional_params = params.get('additional_params_activities', {})
         else:
             additional_params = {}
 
@@ -81,7 +151,7 @@ class Component(ComponentBase):
             else:
                 start_date_form = dateparser.parse(start_date)
                 end_date_form = dateparser.parse(end_date)
-                day_diff = (end_date_form-start_date_form).days
+                day_diff = (end_date_form - start_date_form).days
 
                 if day_diff < 0:
                     raise UserException(
@@ -97,54 +167,11 @@ class Component(ComponentBase):
             elif start_date and end_date:
                 start_date_form = dateparser.parse(start_date)
                 end_date_form = dateparser.parse(end_date)
-                day_diff = (end_date_form-start_date_form).days
+                day_diff = (end_date_form - start_date_form).days
 
                 if day_diff < 0:
                     raise UserException(
                         '[Start Date] cannot exceed [End Date]')
-
-    def run(self):
-        '''
-        Main execution code
-        '''
-
-        params = self.configuration.parameters
-
-        # Setting up additiona params
-        if params.get(KEY_ENDPOINTS) == 'activities':
-            additional_params = params.get('additional_params_activities')
-        elif params.get(KEY_ENDPOINTS) == 'key_metrics':
-            additional_params = params.get('additional_params_key_metrics')
-        else:
-            additional_params = {}
-
-        # Validating user inputs
-        self.validate_params(params)
-
-        # Previous state
-        previous_state = self.get_state_file()
-
-        # Parse date into the required format
-        if additional_params.get('start-date'):
-            additional_params['start-date'] = dateparser.parse(
-                additional_params['start-date']).strftime("%Y-%m-%d")
-        if additional_params.get('end-date'):
-            additional_params['end-date'] = dateparser.parse(
-                additional_params['end-date']).strftime("%Y-%m-%d")
-
-        # Custom ChartMogul client
-        cm_client = ChartMogul_client(
-            api_token=params.get(KEY_API_TOKEN),
-            incremental=params.get(KEY_INCREMENTAL_LOAD),
-            state=previous_state,
-            destination=self.tables_out_path)
-
-        # Process endpoint
-        cm_client.fetch(endpoint=params.get(KEY_ENDPOINTS),
-                        additional_params=additional_params)
-
-        # Updating state
-        self.write_state_file(cm_client.STATE)
 
 
 """
