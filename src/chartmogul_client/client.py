@@ -1,12 +1,9 @@
 import json
 import logging
 import os
-from json import JSONDecodeError
 import uuid
 from urllib.parse import urljoin
 
-import backoff as backoff
-from keboola.component.exceptions import UserException
 from keboola.http_client.async_client import AsyncHttpClient
 
 CHARTMOGUL_BASEURL = 'https://api.chartmogul.com/v1/'
@@ -126,7 +123,7 @@ class ChartMogulClient(AsyncHttpClient):
 
                 r = await self.client.get(endpoint, params=endpoint_params)
                 r = r.json()
-                yield r.get("entries", {})
+                yield r.get(CHARTMOGUL_ENDPOINT_CONFIGS[endpoint]["dataType"], {})
 
                 if not r.get('has_more'):
                     break
@@ -148,7 +145,7 @@ class ChartMogulClient(AsyncHttpClient):
         while True:
             r = await self.client.get(endpoint_url, params=endpoint_params)
             r = r.json()
-            yield r.get("entries", {})
+            yield r.get(CHARTMOGUL_ENDPOINT_CONFIGS[endpoint]["dataType"], {})
 
             if r[endpoint_config['dataType']]:
                 LAST_UUID = r[endpoint_config['dataType']][-1]['uuid']
@@ -169,7 +166,7 @@ class ChartMogulClient(AsyncHttpClient):
 
         r = await self.client.get(endpoint_url, params=endpoint_params)
         r = r.json()
-        yield r.get("entries", {})
+        yield r.get(CHARTMOGUL_ENDPOINT_CONFIGS[endpoint]["dataType"], {})
 
         self.STATE = {}
 
@@ -178,6 +175,6 @@ class ChartMogulClient(AsyncHttpClient):
 
         r = await self.client.get(endpoint_url)
         r = r.json()
-        yield r.get("invoices", {})
+        yield r.get(CHARTMOGUL_ENDPOINT_CONFIGS[endpoint]["dataType"], {})
 
         self.STATE = {}

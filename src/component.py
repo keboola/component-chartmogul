@@ -7,6 +7,7 @@ import dateparser
 import json
 import logging
 import os
+import shutil
 
 from keboola.component.base import ComponentBase
 from keboola.component.exceptions import UserException
@@ -117,7 +118,11 @@ class Component(ComponentBase):
 
         for table in self.columns:
             new_statefile["columns"][table] = self.columns.get(table)
+
         self.write_state_file(new_statefile)
+
+        # Clean temp folder (primarily for local runs)
+        shutil.rmtree(temp_path)
 
     def validate_params(self, params):
         '''
