@@ -5,6 +5,8 @@ import uuid
 from urllib.parse import urljoin
 
 from keboola.http_client.async_client import AsyncHttpClient
+from keboola.json_to_csv import Parser, TableMapping
+
 
 CHARTMOGUL_BASEURL = 'https://api.chartmogul.com/v1/'
 
@@ -50,7 +52,7 @@ class ChartMogulClient(AsyncHttpClient):
                          retry_status_codes=[500, 502, 504])
 
         # Request parameters
-        self.DESTINATION = destination
+        self.destination = destination
         self.INCREMENTAL = incremental
         self.STATE = state
 
@@ -84,29 +86,34 @@ class ChartMogulClient(AsyncHttpClient):
 
         if endpoint == 'customers_subscriptions':
             customer_uuids = await self.fetch_customers()
-            async for result in self._fetch_customers_subscriptions(customer_uuids):
-                await self.save_result(result, endpoint)
+            async for results in self._fetch_customers_subscriptions(customer_uuids):
+                for result in results:
+                    await self.save_result(result, endpoint)
 
         elif endpoint == 'activities':
-            async for result in self._fetch_activities(endpoint, endpoint_config, additional_params):
-                await self.save_result(result, endpoint)
+            async for results in self._fetch_activities(endpoint, endpoint_config, additional_params):
+                for result in results:
+                    await self.save_result(result, endpoint)
 
         elif endpoint == 'key_metrics':
-            async for result in self._fetch_key_metrics(endpoint, additional_params):
-                await self.save_result(result, endpoint)
+            async for results in self._fetch_key_metrics(endpoint, additional_params):
+                for result in results:
+                    await self.save_result(result, endpoint)
 
         elif endpoint == 'invoices':
-            async for result in self._fetch_invoices(endpoint):
-                await self.save_result(result, endpoint)
+            async for results in self._fetch_invoices(endpoint):
+                parser = Parser(main_table_name=endpoint, analyze_further=True)
+                parsed = parser.parse_data(results)
+                await self.save_result(parsed)
 
-    async def save_result(self, results: list, endpoint: str):
-        path = os.path.join(self.DESTINATION, endpoint)
-        os.makedirs(path, exist_ok=True)
-
+    async def save_result(self, results: dict):
         for result in results:
+            path = os.path.join(self.destination, result)
+            os.makedirs(path, exist_ok=True)
+
             full_path = os.path.join(path, f"{uuid.uuid4()}.json")
             with open(full_path, "w") as json_file:
-                json.dump(result, json_file, indent=4)
+                json.dump(results.get(result), json_file, indent=4)
 
     async def _fetch_customers_subscriptions(self, customer_uuids):
         endpoint_params = {

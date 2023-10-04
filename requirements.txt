@@ -10,3 +10,4 @@ urllib3
 dateparser
 keboola.csvwriter
 aiolimiter
+keboola.json-to-csv

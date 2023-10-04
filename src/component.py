@@ -68,6 +68,7 @@ class Component(ComponentBase):
 
         # Previous state
         previous_state = self.get_state_file()
+        self.columns = previous_state.get("columns")
 
         # Parse date into the required format
         if additional_params.get('start-date'):
@@ -91,20 +92,21 @@ class Component(ComponentBase):
         asyncio.run(cm_client.fetch(endpoint=endpoint, additional_params=additional_params))
 
         if os.path.isdir(temp_path):
+            # subfolder is used as a name for the output csv
             for subfolder in os.listdir(temp_path):
 
-                table_name = f"{subfolder}.csv"
-                table_path = os.path.join(self.tables_out_path, table_name)
+                out_table_path = os.path.join(self.tables_out_path, subfolder)
 
                 if os.path.isdir(os.path.join(temp_path, subfolder)):
-                    with ElasticDictWriter(table_path, []) as wr:
+                    fieldnames = self.columns.get(subfolder, [])
+                    with ElasticDictWriter(out_table_path, fieldnames) as wr:
                         wr.writeheader()
                         for json_file in os.listdir(os.path.join(temp_path, subfolder)):
                             json_file_path = os.path.join(temp_path, subfolder, json_file)
                             with open(json_file_path, 'r') as file:
-                                row = json.load(file)
-
-                            wr.writerow(row)
+                                content = json.load(file)
+                                for row in content:
+                                    wr.writerow(row)
 
                     table = self.create_out_table_definition(subfolder, is_sliced=True, columns=wr.fieldnames)
                     self.columns[subfolder] = wr.fieldnames
@@ -122,6 +124,7 @@ class Component(ComponentBase):
         self.write_state_file(new_statefile)
 
         # Clean temp folder (primarily for local runs)
+        exit()
         shutil.rmtree(temp_path)
 
     def validate_params(self, params):
