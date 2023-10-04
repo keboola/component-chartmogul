@@ -5,7 +5,7 @@ import uuid
 from urllib.parse import urljoin
 
 from keboola.http_client.async_client import AsyncHttpClient
-from keboola.json_to_csv import Parser, TableMapping
+from keboola.json_to_csv import Parser
 
 
 CHARTMOGUL_BASEURL = 'https://api.chartmogul.com/v1/'
