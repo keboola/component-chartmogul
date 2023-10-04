@@ -15,6 +15,7 @@ from keboola.csvwriter import ElasticDictWriter
 
 import chartmogul
 from chartmogul_client.client import ChartMogulClient
+from chartmogul_client.mapping import pkeys_mapping
 
 # configuration variables
 KEY_API_TOKEN = '#api_token'
@@ -108,12 +109,13 @@ class Component(ComponentBase):
                                 for row in content:
                                     wr.writerow(row)
 
-                    table = self.create_out_table_definition(subfolder, is_sliced=True, columns=wr.fieldnames)
+                    pk = pkeys_mapping.get("subfolder", [])
+                    table = self.create_out_table_definition(subfolder, is_sliced=True, primary_key=pk)
                     self.columns[subfolder] = wr.fieldnames
                     self.write_manifest(table)
 
         # Updating state
-        new_statefile = cm_client.STATE
+        new_statefile = cm_client.state
 
         if "columns" not in new_statefile:
             new_statefile["columns"] = {}
@@ -124,7 +126,6 @@ class Component(ComponentBase):
         self.write_state_file(new_statefile)
 
         # Clean temp folder (primarily for local runs)
-        exit()
         shutil.rmtree(temp_path)
 
     def validate_params(self, params):

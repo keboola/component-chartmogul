@@ -13,29 +13,23 @@ CHARTMOGUL_BASEURL = 'https://api.chartmogul.com/v1/'
 CHARTMOGUL_ENDPOINT_CONFIGS = {
     'activities': {
         'endpoint': 'activities',
-        'dataType': 'entries',
-        'pagination': 'additional_params_activities'
+        'dataType': 'entries'
     },
     'customers': {
         'endpoint': 'customers',
-        'dataType': 'entries',
-        'pagination': 'page'
+        'dataType': 'entries'
     },
     'customers_subscriptions': {
         'endpoint': 'customers/{{customers_uuid}}/subscriptions',
-        'dataType': 'entries',
-        'required': 'customers',
-        'pagination': 'page'
+        'dataType': 'entries'
     },
     'key_metrics': {
         'endpoint': 'metrics/all',
-        'dataType': 'entries',
-        'pagination': 'additional_params_key_metrics'
+        'dataType': 'entries'
     },
     'invoices': {
         'endpoint': 'invoices',
-        'dataType': 'invoices',
-        'pagination': 'page'
+        'dataType': 'invoices'
     }
 }
 
@@ -53,52 +47,34 @@ class ChartMogulClient(AsyncHttpClient):
 
         # Request parameters
         self.destination = destination
-        self.INCREMENTAL = incremental
-        self.STATE = state
-
-    async def fetch_customers(self) -> list:
-        endpoint_url = urljoin(CHARTMOGUL_BASEURL, "customers")
-
-        endpoint_params = {
-            'page': 1,
-            'per_page': 200
-        }
-
-        results = []
-        while True:
-            logging.info(f'Extracting [customers] - Page {endpoint_params["page"]}')
-
-            r_raw = await self.client.get(endpoint_url)
-            r = r_raw.json()
-            if r.get("entries"):
-                for entry in r.get("entries"):
-                    await self.save_result(r.get("entries"), "customers")
-                    results.append(entry.get("uuid"))
-
-            if not r.get('has_more'):
-                return results
-            else:
-                endpoint_params['page'] += 1
+        self.incremental = incremental
+        self.state = state
 
     async def fetch(self, endpoint, additional_params=None):
 
         endpoint_config = CHARTMOGUL_ENDPOINT_CONFIGS[endpoint]
 
+        if endpoint == 'customers':
+            return await self._fetch_customers()
+
         if endpoint == 'customers_subscriptions':
-            customer_uuids = await self.fetch_customers()
+            customer_uuids = await self.fetch(endpoint="customers")
             async for results in self._fetch_customers_subscriptions(customer_uuids):
-                for result in results:
-                    await self.save_result(result, endpoint)
+                parser = Parser(main_table_name=endpoint, analyze_further=True)
+                parsed = parser.parse_data(results)
+                await self.save_result(parsed)
 
         elif endpoint == 'activities':
             async for results in self._fetch_activities(endpoint, endpoint_config, additional_params):
-                for result in results:
-                    await self.save_result(result, endpoint)
+                parser = Parser(main_table_name=endpoint, analyze_further=True)
+                parsed = parser.parse_data(results)
+                await self.save_result(parsed)
 
         elif endpoint == 'key_metrics':
             async for results in self._fetch_key_metrics(endpoint, additional_params):
-                for result in results:
-                    await self.save_result(result, endpoint)
+                parser = Parser(main_table_name=endpoint, analyze_further=True)
+                parsed = parser.parse_data(results)
+                await self.save_result(parsed)
 
         elif endpoint == 'invoices':
             async for results in self._fetch_invoices(endpoint):
@@ -130,7 +106,11 @@ class ChartMogulClient(AsyncHttpClient):
 
                 r = await self.client.get(endpoint, params=endpoint_params)
                 r = r.json()
-                yield r.get(CHARTMOGUL_ENDPOINT_CONFIGS[endpoint]["dataType"], {})
+                entries = r.get(CHARTMOGUL_ENDPOINT_CONFIGS["customers_subscriptions"]["dataType"])
+                for entry in entries:
+                    entry["customer_uuid"] = customer_uuid
+
+                yield entries
 
                 if not r.get('has_more'):
                     break
@@ -141,9 +121,9 @@ class ChartMogulClient(AsyncHttpClient):
         endpoint_url = urljoin(CHARTMOGUL_BASEURL, endpoint)
 
         endpoint_params = {'per_page': 200}
-        LAST_UUID = ''
-        if self.STATE and self.INCREMENTAL:
-            endpoint_params['start-after'] = self.STATE.get('start-after')
+        last_uuid = ''
+        if self.state and self.incremental:
+            endpoint_params['start-after'] = self.state.get('start-after')
         else:
             for p in additional_params:
                 if additional_params[p]:
@@ -155,8 +135,8 @@ class ChartMogulClient(AsyncHttpClient):
             yield r.get(CHARTMOGUL_ENDPOINT_CONFIGS[endpoint]["dataType"], {})
 
             if r[endpoint_config['dataType']]:
-                LAST_UUID = r[endpoint_config['dataType']][-1]['uuid']
-            endpoint_params = {'start-after': LAST_UUID, 'per_page': 200}
+                last_uuid = r[endpoint_config['dataType']][-1]['uuid']
+            endpoint_params = {'start-after': last_uuid, 'per_page': 200}
 
             if not r.get('has_more'):
                 break
@@ -175,8 +155,6 @@ class ChartMogulClient(AsyncHttpClient):
         r = r.json()
         yield r.get(CHARTMOGUL_ENDPOINT_CONFIGS[endpoint]["dataType"], {})
 
-        self.STATE = {}
-
     async def _fetch_invoices(self, endpoint):
         endpoint_url = urljoin(CHARTMOGUL_BASEURL, CHARTMOGUL_ENDPOINT_CONFIGS[endpoint]["endpoint"])
 
@@ -184,4 +162,31 @@ class ChartMogulClient(AsyncHttpClient):
         r = r.json()
         yield r.get(CHARTMOGUL_ENDPOINT_CONFIGS[endpoint]["dataType"], {})
 
-        self.STATE = {}
+    async def _fetch_customers(self) -> list:
+        endpoint_url = urljoin(CHARTMOGUL_BASEURL, "customers")
+
+        endpoint_params = {
+            'page': 1,
+            'per_page': 200
+        }
+
+        results = []
+        while True:
+            logging.info(f'Extracting [customers] - Page {endpoint_params["page"]}')
+
+            r = await self.client.get(endpoint_url)
+            r = r.json()
+            data = r.get(CHARTMOGUL_ENDPOINT_CONFIGS["customers"]["dataType"], {})
+
+            if r:
+                parser = Parser(main_table_name="customers", analyze_further=True)
+                parsed = parser.parse_data(data)
+                await self.save_result(parsed)
+
+                for customer in parsed.get("customers", []):
+                    results.append(customer.get("uuid"))
+
+            if not r.get('has_more'):
+                return results
+            else:
+                endpoint_params['page'] += 1
