@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import os
@@ -39,16 +40,18 @@ class RetryableHttpException(Exception):
 
 
 class ChartMogulClient(AsyncHttpClient):
-    def __init__(self, destination, api_token, incremental=False, state=None):
+    def __init__(self, destination, api_token, incremental=False, state=None, batch_size: int = 10):
         super().__init__(base_url=CHARTMOGUL_BASEURL,
                          auth=(api_token, ''),
                          retries=10,
-                         retry_status_codes=[500, 502, 504])
+                         retry_status_codes=[500, 502, 504],
+                         max_requests_per_second=40)
 
         # Request parameters
         self.destination = destination
         self.incremental = incremental
         self.state = state
+        self.batch_size = batch_size
 
     async def fetch(self, endpoint, additional_params=None):
 
@@ -92,30 +95,42 @@ class ChartMogulClient(AsyncHttpClient):
                 json.dump(results.get(result), json_file, indent=4)
 
     async def _fetch_customers_subscriptions(self, customer_uuids):
+        tasks = []
+        for i, customer_uuid in enumerate(customer_uuids):
+            tasks.append(self._fetch_customer_subscriptions(customer_uuid))
+
+            # Check if the batch size is reached or if we are at the last customer
+            if len(tasks) == self.batch_size or i == len(customer_uuids) - 1:
+                results = await asyncio.gather(*tasks)
+                for result in results:
+                    yield result
+
+                tasks.clear()
+
+    async def _fetch_customer_subscriptions(self, customer_uuid):
         endpoint_params = {
             'page': 1,
             'per_page': 200
         }
 
-        for customer_uuid in customer_uuids:
-            while True:
-                endpoint = f'customers/{customer_uuid}/subscriptions'
-                endpoint = urljoin(CHARTMOGUL_BASEURL, endpoint)
+        all_entries = []
+        while True:
+            endpoint = f'customers/{customer_uuid}/subscriptions'
+            endpoint = urljoin(CHARTMOGUL_BASEURL, endpoint)
 
-                # logging.info(f'Extracting [{endpoint}] - Page {endpoint_params["page"]}')
+            r = await self._get(endpoint, params=endpoint_params)
+            entries = r.get(CHARTMOGUL_ENDPOINT_CONFIGS["customers_subscriptions"]["dataType"])
+            for entry in entries:
+                entry["customer_uuid"] = customer_uuid
 
-                r = await self.client.get(endpoint, params=endpoint_params)
-                r = r.json()
-                entries = r.get(CHARTMOGUL_ENDPOINT_CONFIGS["customers_subscriptions"]["dataType"])
-                for entry in entries:
-                    entry["customer_uuid"] = customer_uuid
+            all_entries.extend(entries)
 
-                yield entries
+            if not r.get('has_more'):
+                break
+            else:
+                endpoint_params['page'] += 1
 
-                if not r.get('has_more'):
-                    break
-                else:
-                    endpoint_params['page'] += 1
+        return all_entries
 
     async def _fetch_activities(self, endpoint, endpoint_config, additional_params):
         endpoint_url = urljoin(CHARTMOGUL_BASEURL, endpoint)
@@ -190,3 +205,12 @@ class ChartMogulClient(AsyncHttpClient):
                 return results
             else:
                 params['page'] += 1
+
+    async def _get(self, endpoint: str, params=None) -> dict:
+        if params is None:
+            params = {}
+
+        try:
+            return await self.get(endpoint, params=params)
+        except json.decoder.JSONDecodeError as e:
+            raise Exception(e) from e

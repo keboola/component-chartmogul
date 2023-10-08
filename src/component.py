@@ -28,8 +28,6 @@ REQUIRED_PARAMETERS = [
 ]
 REQUIRED_IMAGE_PARS = []
 
-BATCH_SIZE = 10
-
 
 class Component(ComponentBase):
 
