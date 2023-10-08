@@ -165,16 +165,16 @@ class ChartMogulClient(AsyncHttpClient):
     async def _fetch_customers(self) -> list:
         endpoint_url = urljoin(CHARTMOGUL_BASEURL, "customers")
 
-        endpoint_params = {
+        params = {
             'page': 1,
             'per_page': 200
         }
 
         results = []
         while True:
-            logging.info(f'Extracting [customers] - Page {endpoint_params["page"]}')
+            logging.info(f'Extracting [customers] - Page {params["page"]}')
 
-            r = await self.client.get(endpoint_url)
+            r = await self.client.get(endpoint_url, params=params)
             r = r.json()
             data = r.get(CHARTMOGUL_ENDPOINT_CONFIGS["customers"]["dataType"], {})
 
@@ -189,4 +189,4 @@ class ChartMogulClient(AsyncHttpClient):
             if not r.get('has_more'):
                 return results
             else:
-                endpoint_params['page'] += 1
+                params['page'] += 1

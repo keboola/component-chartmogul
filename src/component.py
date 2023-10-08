@@ -1,13 +1,10 @@
-'''
-Keboola ChartMogul Extractor
-'''
-
 import asyncio
 import dateparser
 import json
 import logging
 import os
 import shutil
+import time
 
 from keboola.component.base import ComponentBase
 from keboola.component.exceptions import UserException
@@ -35,19 +32,11 @@ BATCH_SIZE = 10
 
 
 class Component(ComponentBase):
-    """
-        Extends base class for general Python components. Initializes the CommonInterface
-        and performs configuration validation.
-
-        For easier debugging the data folder is picked up by default from `../data` path,
-        relative to working directory.
-
-        If `debug` parameter is present in the `config.json`, the default logger is set to verbose DEBUG mode.
-    """
 
     def __init__(self):
         super().__init__()
         self.columns = {}
+        self.start_time = time.perf_counter()
 
     def run(self):
         '''
@@ -128,7 +117,12 @@ class Component(ComponentBase):
         # Clean temp folder (primarily for local runs)
         shutil.rmtree(temp_path)
 
-    def validate_params(self, params):
+        end_time = time.perf_counter()
+        runtime = end_time - self.start_time
+        logging.info(f"Runtime: {runtime} seconds")
+
+    @staticmethod
+    def validate_params(params):
         '''
         Validating user input configuration values
         '''
