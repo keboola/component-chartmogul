@@ -217,4 +217,4 @@ class ChartMogulClient(AsyncHttpClient):
             r = r.json()
             return r
         except json.decoder.JSONDecodeError as e:
-            raise ChartMogulException(f"Cannot parse response for {endpoint}, exception: {e}") from e
+            raise ChartMogulClientException(f"Cannot parse response for {endpoint}, exception: {e}") from e
