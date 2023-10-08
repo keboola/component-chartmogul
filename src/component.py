@@ -11,7 +11,7 @@ from keboola.component.exceptions import UserException
 from keboola.csvwriter import ElasticDictWriter
 
 import chartmogul
-from chartmogul_client.client import ChartMogulClient
+from chartmogul_client.client import ChartMogulClient, ChartMogulClientException
 from chartmogul_client.mapping import pkeys_mapping
 
 # configuration variables
@@ -77,7 +77,10 @@ class Component(ComponentBase):
 
         # Process endpoint
         endpoint = params.get(KEY_ENDPOINTS)
-        asyncio.run(cm_client.fetch(endpoint=endpoint, additional_params=additional_params))
+        try:
+            asyncio.run(cm_client.fetch(endpoint=endpoint, additional_params=additional_params))
+        except ChartMogulClientException as e:
+            raise UserException(f"Failed to fetch data from endpoint {endpoint}, exception: {e}")
 
         if os.path.isdir(temp_path):
             # subfolder is used as a name for the output csv

@@ -35,7 +35,7 @@ CHARTMOGUL_ENDPOINT_CONFIGS = {
 }
 
 
-class RetryableHttpException(Exception):
+class ChartMogulClientException(Exception):
     pass
 
 
@@ -210,7 +210,11 @@ class ChartMogulClient(AsyncHttpClient):
         if params is None:
             params = {}
 
+        r = await self.get_raw(endpoint, params=params)
+        r.raise_for_status()
+
         try:
-            return await self.get(endpoint, params=params)
+            r = r.json()
+            return r
         except json.decoder.JSONDecodeError as e:
-            raise Exception(e) from e
+            raise ChartMogulException(f"Cannot parse response for {endpoint}, exception: {e}") from e
