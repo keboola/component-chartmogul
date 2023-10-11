@@ -45,9 +45,9 @@ class Component(ComponentBase):
 
         # Setting up additional params
         if params.get(KEY_ENDPOINTS) == 'activities':
-            additional_params = params.get('additional_params_activities')
+            additional_params = params.get('additional_params_activities', {})
         elif params.get(KEY_ENDPOINTS) == 'key_metrics':
-            additional_params = params.get('additional_params_key_metrics')
+            additional_params = params.get('additional_params_key_metrics', {})
         else:
             additional_params = {}
 
@@ -60,11 +60,9 @@ class Component(ComponentBase):
 
         # Parse date into the required format
         if additional_params.get('start-date'):
-            additional_params['start-date'] = dateparser.parse(
-                additional_params['start-date']).strftime("%Y-%m-%d")
+            additional_params['start-date'] = dateparser.parse(additional_params['start-date']).strftime("%Y-%m-%d")
         if additional_params.get('end-date'):
-            additional_params['end-date'] = dateparser.parse(
-                additional_params['end-date']).strftime("%Y-%m-%d")
+            additional_params['end-date'] = dateparser.parse(additional_params['end-date']).strftime("%Y-%m-%d")
 
         temp_path = os.path.join(self.data_folder_path, "temp")
 
@@ -184,6 +182,8 @@ class Component(ComponentBase):
         # Fetching values for additional_params
         if endpoints == 'key_metrics':
             additional_params = params.get('additional_params_key_metrics')
+            if not additional_params:
+                raise UserException("Start Date and End Date must be set for endpoint Key metrics.")
         elif endpoints == 'activities':
             additional_params = params.get('additional_params_activities', {})
         else:
@@ -195,8 +195,7 @@ class Component(ComponentBase):
         # 4 - endpoint key_metrics requires start-date and end-date
         if endpoints == 'key_metrics':
             if not start_date or not end_date:
-                raise UserException(
-                    '[Start date] and [End Date] are required.')
+                raise UserException('[Start date] and [End Date] are required.')
 
             else:
                 start_date_form = dateparser.parse(start_date)
@@ -204,15 +203,13 @@ class Component(ComponentBase):
                 day_diff = (end_date_form - start_date_form).days
 
                 if day_diff < 0:
-                    raise UserException(
-                        '[Start Date] cannot exceed [End Date]')
+                    raise UserException('[Start Date] cannot exceed [End Date]')
 
         # 5 - validate start-date and end-date on activities endpoint
         if endpoints == 'activities':
 
             if end_date and not start_date:
-                raise UserException(
-                    'Please specify [Start Date] when [End Date] is specified.')
+                raise UserException('Please specify [Start Date] when [End Date] is specified.')
 
             elif start_date and end_date:
                 start_date_form = dateparser.parse(start_date)
@@ -220,8 +217,7 @@ class Component(ComponentBase):
                 day_diff = (end_date_form - start_date_form).days
 
                 if day_diff < 0:
-                    raise UserException(
-                        '[Start Date] cannot exceed [End Date]')
+                    raise UserException('[Start Date] cannot exceed [End Date]')
 
 
 """

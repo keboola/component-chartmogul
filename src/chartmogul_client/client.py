@@ -4,6 +4,7 @@ import os
 import uuid
 from urllib.parse import urljoin
 
+from httpx import HTTPStatusError
 from keboola.http_client.async_client import AsyncHttpClient
 from keboola.json_to_csv import Parser
 
@@ -223,7 +224,11 @@ class ChartMogulClient(AsyncHttpClient):
             params = {}
 
         r = await self.get_raw(endpoint, params=params)
-        r.raise_for_status()
+
+        try:
+            r.raise_for_status()
+        except HTTPStatusError:
+            raise ChartMogulClientException(f"Cannot fetch resource: {endpoint}")
 
         try:
             return r.json()
