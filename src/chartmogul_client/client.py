@@ -156,7 +156,7 @@ class ChartMogulClient(AsyncHttpClient):
             if not r.get('has_more'):
                 break
 
-        self.STATE = {endpoint: endpoint_params}
+        self.state = {endpoint: endpoint_params}
 
     async def _fetch_key_metrics(self, endpoint, additional_params):
         endpoint_url = urljoin(CHARTMOGUL_BASEURL, CHARTMOGUL_ENDPOINT_CONFIGS[endpoint]["endpoint"])
@@ -168,7 +168,7 @@ class ChartMogulClient(AsyncHttpClient):
 
         r = await self._get(endpoint_url, params=endpoint_params)
         yield r.get(CHARTMOGUL_ENDPOINT_CONFIGS[endpoint]["dataType"], {})
-        self.STATE = {endpoint: endpoint_params}
+        self.state = {endpoint: endpoint_params}
 
     async def _fetch_invoices(self, endpoint):
         endpoint_url = urljoin(CHARTMOGUL_BASEURL, CHARTMOGUL_ENDPOINT_CONFIGS[endpoint]["endpoint"])
