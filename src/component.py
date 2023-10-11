@@ -98,7 +98,7 @@ class Component(ComponentBase):
         self.write_state_file(new_statefile)
 
         # Clean temp folder (primarily for local runs)
-        # shutil.rmtree(temp_path)
+        shutil.rmtree(temp_path)
 
         end_time = time.perf_counter()
         runtime = end_time - self.start_time
