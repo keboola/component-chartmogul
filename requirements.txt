@@ -1,13 +1,12 @@
 keboola.component==1.4.3
 git+https://github.com/SgtMarmite/python-http-client.git@async-http-client
 keboola.utils
+keboola.json-to-csv
 mock
 freezegun
 backoff
 chartmogul==3.1.2
-pandas
 urllib3
 dateparser
 keboola.csvwriter
 aiolimiter
-keboola.json-to-csv

@@ -33,7 +33,7 @@ class Component(ComponentBase):
 
     def __init__(self):
         super().__init__()
-        self.columns = {}
+        self.state_columns = {}
         self.start_time = time.perf_counter()
 
     def run(self):
@@ -56,7 +56,7 @@ class Component(ComponentBase):
 
         # Previous state
         previous_state = self.get_state_file()
-        self.columns = previous_state.get("columns")
+        self.state_columns = previous_state.get("columns", {})
 
         # Parse date into the required format
         if additional_params.get('start-date'):
@@ -83,35 +83,17 @@ class Component(ComponentBase):
             raise UserException(f"Failed to fetch data from endpoint {endpoint}, exception: {e}")
 
         if os.path.isdir(temp_path):
-            # subfolder is used as a name for the output csv
             for subfolder in os.listdir(temp_path):
-
-                out_table_path = os.path.join(self.tables_out_path, subfolder)
-
-                if os.path.isdir(os.path.join(temp_path, subfolder)):
-                    fieldnames = self.columns.get(subfolder, [])
-                    with ElasticDictWriter(out_table_path, fieldnames) as wr:
-                        wr.writeheader()
-                        for json_file in os.listdir(os.path.join(temp_path, subfolder)):
-                            json_file_path = os.path.join(temp_path, subfolder, json_file)
-                            with open(json_file_path, 'r') as file:
-                                content = json.load(file)
-                                for row in content:
-                                    wr.writerow(row)
-
-                    pk = pkeys_mapping.get("subfolder", [])
-                    table = self.create_out_table_definition(subfolder, is_sliced=True, primary_key=pk)
-                    self.columns[subfolder] = wr.fieldnames
-                    self.write_manifest(table)
+                self.process_subfolder(temp_path, subfolder, self.tables_out_path)
 
         # Updating state
-        new_statefile = cm_client.state
+        new_statefile = cm_client.state  # load state related data from current run
 
         if "columns" not in new_statefile:
             new_statefile["columns"] = {}
 
-        for table in self.columns:
-            new_statefile["columns"][table] = self.columns.get(table)
+        for table in self.state_columns:
+            new_statefile["columns"][table] = self.state_columns.get(table)
 
         self.write_state_file(new_statefile)
 
@@ -121,6 +103,30 @@ class Component(ComponentBase):
         end_time = time.perf_counter()
         runtime = end_time - self.start_time
         logging.info(f"Runtime: {runtime} seconds")
+
+    def process_subfolder(self, temp_path, subfolder, tables_out_path):
+        subfolder_path = os.path.join(temp_path, subfolder)
+        if not os.path.isdir(subfolder_path):
+            return
+
+        out_table_path = os.path.join(tables_out_path, subfolder)
+        fieldnames = self.state_columns.get(subfolder, [])
+
+        with ElasticDictWriter(out_table_path, fieldnames) as wr:
+            wr.writeheader()
+
+            for json_file in os.listdir(subfolder_path):
+                json_file_path = os.path.join(subfolder_path, json_file)
+
+                with open(json_file_path, 'r') as file:
+                    content = json.load(file)
+                    for row in content:
+                        wr.writerow(row)
+
+        pk = pkeys_mapping.get(subfolder, [])
+        table = self.create_out_table_definition(subfolder, is_sliced=True, primary_key=pk)
+        self.state_columns[subfolder] = wr.fieldnames
+        self.write_manifest(table)
 
     @staticmethod
     def validate_params(params):

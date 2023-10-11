@@ -1,13 +1,11 @@
 import asyncio
 import json
-import logging
 import os
 import uuid
 from urllib.parse import urljoin
 
 from keboola.http_client.async_client import AsyncHttpClient
 from keboola.json_to_csv import Parser
-
 
 CHARTMOGUL_BASEURL = 'https://api.chartmogul.com/v1/'
 
@@ -34,18 +32,21 @@ CHARTMOGUL_ENDPOINT_CONFIGS = {
     }
 }
 
+BATCH_SIZE = 200
+MAX_REQUESTS_PER_SECOND = 40  # API LIMIT
+
 
 class ChartMogulClientException(Exception):
     pass
 
 
 class ChartMogulClient(AsyncHttpClient):
-    def __init__(self, destination, api_token, incremental=False, state=None, batch_size: int = 10):
+    def __init__(self, destination, api_token, incremental=False, state=None, batch_size: int = BATCH_SIZE):
         super().__init__(base_url=CHARTMOGUL_BASEURL,
                          auth=(api_token, ''),
-                         retries=10,
-                         retry_status_codes=[500, 502, 504],
-                         max_requests_per_second=40)
+                         retries=5,
+                         retry_status_codes=[500, 502, 503, 504],
+                         max_requests_per_second=MAX_REQUESTS_PER_SECOND)
 
         # Request parameters
         self.destination = destination
@@ -145,8 +146,7 @@ class ChartMogulClient(AsyncHttpClient):
                     endpoint_params[p] = additional_params[p]
 
         while True:
-            r = await self.client.get(endpoint_url, params=endpoint_params)
-            r = r.json()
+            r = await self._get(endpoint_url, params=endpoint_params)
             yield r.get(CHARTMOGUL_ENDPOINT_CONFIGS[endpoint]["dataType"], {})
 
             if r[endpoint_config['dataType']]:
@@ -166,45 +166,56 @@ class ChartMogulClient(AsyncHttpClient):
             if additional_params[p]:
                 endpoint_params[p] = additional_params[p]
 
-        r = await self.client.get(endpoint_url, params=endpoint_params)
-        r = r.json()
+        r = await self._get(endpoint_url, params=endpoint_params)
         yield r.get(CHARTMOGUL_ENDPOINT_CONFIGS[endpoint]["dataType"], {})
+        self.STATE = {endpoint: endpoint_params}
 
     async def _fetch_invoices(self, endpoint):
         endpoint_url = urljoin(CHARTMOGUL_BASEURL, CHARTMOGUL_ENDPOINT_CONFIGS[endpoint]["endpoint"])
 
-        r = await self.client.get(endpoint_url)
-        r = r.json()
+        r = await self._get(endpoint_url)
         yield r.get(CHARTMOGUL_ENDPOINT_CONFIGS[endpoint]["dataType"], {})
 
     async def _fetch_customers(self) -> list:
+        customer_uuids = []
+        done = False
+        i = 1
+
+        while not done:
+            tasks = [self._fetch_customers_page(i) for i in range(i, i + self.batch_size)]
+            i += self.batch_size
+
+            batch_results = await asyncio.gather(*tasks)
+
+            for result in batch_results:
+                customer_uuids.extend(result)
+
+                if not result:
+                    done = True
+
+        return customer_uuids
+
+    async def _fetch_customers_page(self, page: int):
         endpoint_url = urljoin(CHARTMOGUL_BASEURL, "customers")
 
         params = {
-            'page': 1,
+            'page': page,
             'per_page': 200
         }
 
         results = []
-        while True:
-            logging.info(f'Extracting [customers] - Page {params["page"]}')
+        r = await self._get(endpoint_url, params=params)
+        data = r.get(CHARTMOGUL_ENDPOINT_CONFIGS["customers"]["dataType"], {})
 
-            r = await self.client.get(endpoint_url, params=params)
-            r = r.json()
-            data = r.get(CHARTMOGUL_ENDPOINT_CONFIGS["customers"]["dataType"], {})
+        if r:
+            parser = Parser(main_table_name="customers", analyze_further=True)
+            parsed = parser.parse_data(data)
+            await self.save_result(parsed)
 
-            if r:
-                parser = Parser(main_table_name="customers", analyze_further=True)
-                parsed = parser.parse_data(data)
-                await self.save_result(parsed)
+            for customer in parsed.get("customers", []):
+                results.append(customer.get("uuid"))
 
-                for customer in parsed.get("customers", []):
-                    results.append(customer.get("uuid"))
-
-            if not r.get('has_more'):
-                return results
-            else:
-                params['page'] += 1
+        return results
 
     async def _get(self, endpoint: str, params=None) -> dict:
         if params is None:
@@ -214,7 +225,6 @@ class ChartMogulClient(AsyncHttpClient):
         r.raise_for_status()
 
         try:
-            r = r.json()
-            return r
+            return r.json()
         except json.decoder.JSONDecodeError as e:
             raise ChartMogulClientException(f"Cannot parse response for {endpoint}, exception: {e}") from e
