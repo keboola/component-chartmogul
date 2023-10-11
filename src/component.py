@@ -105,28 +105,45 @@ class Component(ComponentBase):
         logging.info(f"Runtime: {runtime} seconds")
 
     def process_subfolder(self, temp_path, subfolder, tables_out_path):
+        valid_rows = False
         subfolder_path = os.path.join(temp_path, subfolder)
         if not os.path.isdir(subfolder_path):
             return
 
-        out_table_path = os.path.join(tables_out_path, subfolder)
-        fieldnames = self.state_columns.get(subfolder, [])
+        if self.are_files_in_directory(subfolder_path):
 
-        with ElasticDictWriter(out_table_path, fieldnames) as wr:
-            wr.writeheader()
+            out_table_path = os.path.join(tables_out_path, subfolder)
+            fieldnames = self.state_columns.get(subfolder, [])
 
-            for json_file in os.listdir(subfolder_path):
-                json_file_path = os.path.join(subfolder_path, json_file)
+            with ElasticDictWriter(out_table_path, fieldnames) as wr:
+                wr.writeheader()
 
-                with open(json_file_path, 'r') as file:
-                    content = json.load(file)
-                    for row in content:
-                        wr.writerow(row)
+                for json_file in os.listdir(subfolder_path):
+                    json_file_path = os.path.join(subfolder_path, json_file)
 
-        pk = pkeys_mapping.get(subfolder, [])
-        table = self.create_out_table_definition(subfolder, is_sliced=True, primary_key=pk)
-        self.state_columns[subfolder] = wr.fieldnames
-        self.write_manifest(table)
+                    with open(json_file_path, 'r') as file:
+                        content = json.load(file)
+                        for row in content:
+                            if row:
+                                wr.writerow(row)
+                                valid_rows = True
+
+            if valid_rows:
+                pk = pkeys_mapping.get(subfolder, [])
+                table = self.create_out_table_definition(subfolder, is_sliced=True, primary_key=pk)
+                self.state_columns[subfolder] = wr.fieldnames
+                self.write_manifest(table)
+            else:
+                if os.path.exists(out_table_path):
+                    os.remove(out_table_path)
+
+    @staticmethod
+    def are_files_in_directory(path):
+        if os.path.exists(path) and os.path.isdir(path):
+            files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+            return len(files) > 0
+        else:
+            return False
 
     @staticmethod
     def validate_params(params):
