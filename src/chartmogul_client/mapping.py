@@ -1,7 +1,7 @@
 pkeys_mapping = {
     "customers": ["id", "uuid"],
     "activities": ["uuid"],
-    "customers_subscriptions": ["id", "customers_uuid"],
+    "customers_subscriptions": ["id", "customer_uuid"],
     "key_metrics": ["date"],
     "invoices": ["uuid"],
     "invoices_line_items": ["uuid", "JSON_parentId"],

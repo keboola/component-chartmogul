@@ -62,7 +62,7 @@ class ChartMogulClient(AsyncHttpClient):
             return await self._fetch_customers()
 
         if endpoint == 'customers_subscriptions':
-            customer_uuids = await self.fetch(endpoint="customers")
+            customer_uuids = await self._fetch_customers(save_results=False)
             async for results in self._fetch_customers_subscriptions(customer_uuids):
                 parser = Parser(main_table_name=endpoint, analyze_further=True)
                 parsed = parser.parse_data(results)
@@ -176,13 +176,13 @@ class ChartMogulClient(AsyncHttpClient):
         r = await self._get(endpoint_url)
         yield r.get(CHARTMOGUL_ENDPOINT_CONFIGS[endpoint]["dataType"], {})
 
-    async def _fetch_customers(self) -> list:
+    async def _fetch_customers(self, save_results: bool = True) -> list:
         customer_uuids = []
         done = False
         i = 1
 
         while not done:
-            tasks = [self._fetch_customers_page(i) for i in range(i, i + self.batch_size)]
+            tasks = [self._fetch_customers_page(i, save_results) for i in range(i, i + self.batch_size)]
             i += self.batch_size
 
             batch_results = await asyncio.gather(*tasks)
@@ -195,7 +195,7 @@ class ChartMogulClient(AsyncHttpClient):
 
         return customer_uuids
 
-    async def _fetch_customers_page(self, page: int):
+    async def _fetch_customers_page(self, page: int, save_results: bool = True):
         endpoint_url = urljoin(CHARTMOGUL_BASEURL, "customers")
 
         params = {
@@ -210,7 +210,8 @@ class ChartMogulClient(AsyncHttpClient):
         if r:
             parser = Parser(main_table_name="customers", analyze_further=True)
             parsed = parser.parse_data(data)
-            await self.save_result(parsed)
+            if save_results:
+                await self.save_result(parsed)
 
             for customer in parsed.get("customers", []):
                 results.append(customer.get("uuid"))
