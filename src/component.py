@@ -104,7 +104,21 @@ class Component(ComponentBase):
         runtime = end_time - self.start_time
         logging.info(f"Runtime: {runtime} seconds")
 
-    def process_subfolder(self, temp_path, subfolder, tables_out_path):
+    def process_subfolder(self, temp_path: str, subfolder: str, tables_out_path: str):
+        """
+        Process a subfolder containing JSON files, write valid rows to an output table, and update state information.
+
+        Args:
+            temp_path (str): The path to the temporary directory containing the subfolder.
+            subfolder (str): The name of the subfolder to process.
+            tables_out_path (str): The path to the directory where output tables will be saved.
+
+        Returns:
+            None
+
+        Note:
+            If no valid rows are found, the output table file is deleted.
+        """
         valid_rows = False
         subfolder_path = os.path.join(temp_path, subfolder)
         if not os.path.isdir(subfolder_path):
