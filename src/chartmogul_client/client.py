@@ -45,7 +45,7 @@ class ChartMogulClient(AsyncHttpClient):
         super().__init__(base_url=CHARTMOGUL_BASEURL,
                          auth=(api_token, ''),
                          retries=5,
-                         retry_status_codes=[500, 502, 503, 504],
+                         retry_status_codes=[402, 429, 500, 502, 503, 504],
                          max_requests_per_second=MAX_REQUESTS_PER_SECOND)
 
         # Request parameters
