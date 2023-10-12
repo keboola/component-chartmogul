@@ -157,67 +157,69 @@ class Component(ComponentBase):
         else:
             return False
 
-    @staticmethod
-    def validate_params(params):
-        '''
+    def validate_params(self, params):
+        """
         Validating user input configuration values
-        '''
+        """
+        self.ensure_non_empty_params(params)
+        endpoint = self.get_validated_endpoints(params)
+        self.validate_api_token(params[KEY_API_TOKEN])
+        additional_params = self.get_additional_params(params, endpoint)
+        start_date, end_date = self.get_dates(additional_params)
 
-        # 1 - ensure if there are any inputs
-        if params == {}:
+        if endpoint == 'key_metrics':
+            self.validate_key_metrics_dates(start_date, end_date)
+        elif endpoint == 'activities':
+            self.validate_activities_dates(start_date, end_date)
+
+    @staticmethod
+    def ensure_non_empty_params(params):
+        if not params:
             raise UserException('Please input configuration.')
 
-        # 2 - ensure at least one endpoint is selected
-        endpoints = params.get(KEY_ENDPOINTS)
-        if not endpoints:
+    @staticmethod
+    def get_validated_endpoints(params):
+        endpoint = params.get(KEY_ENDPOINTS)
+        if not endpoint:
             raise UserException('Please select an endpoint.')
+        return endpoint
 
-        # 3 - test if API token works
-        config = chartmogul.Config(params[KEY_API_TOKEN])
+    @staticmethod
+    def validate_api_token(api_token):
+        config = chartmogul.Config(api_token)
         try:
             chartmogul.Ping.ping(config).get()
         except Exception as err:
             raise UserException(f'API Token error: {err}')
 
-        # Fetching values for additional_params
-        if endpoints == 'key_metrics':
-            additional_params = params.get('additional_params_key_metrics')
-            if not additional_params:
-                raise UserException("Start Date and End Date must be set for endpoint Key metrics.")
-        elif endpoints == 'activities':
-            additional_params = params.get('additional_params_activities', {})
-        else:
-            additional_params = {}
+    @staticmethod
+    def get_additional_params(params, endpoints):
+        additional_params_key = f'additional_params_{endpoints}'
+        return params.get(additional_params_key, {})
 
-        start_date = additional_params.get('start-date')
-        end_date = additional_params.get('end-date')
+    @staticmethod
+    def get_dates(additional_params):
+        return additional_params.get('start-date'), additional_params.get('end-date')
 
-        # 4 - endpoint key_metrics requires start-date and end-date
-        if endpoints == 'key_metrics':
-            if not start_date or not end_date:
-                raise UserException('[Start date] and [End Date] are required.')
+    def validate_key_metrics_dates(self, start_date, end_date):
+        if not start_date or not end_date:
+            raise UserException('[Start date] and [End Date] are required.')
+        self.validate_date_order(start_date, end_date)
 
-            else:
-                start_date_form = dateparser.parse(start_date)
-                end_date_form = dateparser.parse(end_date)
-                day_diff = (end_date_form - start_date_form).days
+    def validate_activities_dates(self, start_date, end_date):
+        if end_date and not start_date:
+            raise UserException('Please specify [Start Date] when [End Date] is specified.')
+        elif start_date and end_date:
+            self.validate_date_order(start_date, end_date)
 
-                if day_diff < 0:
-                    raise UserException('[Start Date] cannot exceed [End Date]')
+    @staticmethod
+    def validate_date_order(start_date, end_date):
+        start_date_form = dateparser.parse(start_date)
+        end_date_form = dateparser.parse(end_date)
+        day_diff = (end_date_form - start_date_form).days
 
-        # 5 - validate start-date and end-date on activities endpoint
-        if endpoints == 'activities':
-
-            if end_date and not start_date:
-                raise UserException('Please specify [Start Date] when [End Date] is specified.')
-
-            elif start_date and end_date:
-                start_date_form = dateparser.parse(start_date)
-                end_date_form = dateparser.parse(end_date)
-                day_diff = (end_date_form - start_date_form).days
-
-                if day_diff < 0:
-                    raise UserException('[Start Date] cannot exceed [End Date]')
+        if day_diff < 0:
+            raise UserException('[Start Date] cannot exceed [End Date]')
 
 
 """
