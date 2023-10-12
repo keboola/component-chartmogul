@@ -140,6 +140,7 @@ class Component(ComponentBase):
                 self.state_columns[subfolder] = wr.fieldnames
                 self.write_manifest(table)
             else:
+                # do not store empty tables, this leads to output mapping fail
                 if os.path.exists(out_table_path):
                     os.remove(out_table_path)
 
