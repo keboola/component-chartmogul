@@ -122,7 +122,7 @@ class ChartMogulClient(AsyncHttpClient):
             r = await self._get(endpoint, params=endpoint_params)
             entries = r.get(CHARTMOGUL_ENDPOINT_CONFIGS["customers_subscriptions"]["dataType"])
             for entry in entries:
-                entry["customer_uuid"] = customer_uuid
+                entry["customers_uuid"] = customer_uuid
 
             all_entries.extend(entries)
 

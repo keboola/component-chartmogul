@@ -93,7 +93,6 @@ class Component(ComponentBase):
         for table in self.state_columns:
             new_statefile["columns"][table] = self.state_columns.get(table)
 
-        print(new_statefile)
         self.write_state_file(new_statefile)
 
         # Clean temp folder (primarily for local runs)
