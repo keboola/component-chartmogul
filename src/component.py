@@ -4,7 +4,6 @@ import json
 import logging
 import os
 import shutil
-import time
 
 from keboola.component.base import ComponentBase
 from keboola.component.exceptions import UserException
@@ -34,7 +33,6 @@ class Component(ComponentBase):
     def __init__(self):
         super().__init__()
         self.state_columns = {}
-        self.start_time = time.perf_counter()
 
     def run(self):
         '''
@@ -97,10 +95,6 @@ class Component(ComponentBase):
 
         # Clean temp folder (primarily for local runs)
         shutil.rmtree(temp_path)
-
-        end_time = time.perf_counter()
-        runtime = end_time - self.start_time
-        logging.info(f"Runtime: {runtime} seconds")
 
     def process_subfolder(self, temp_path: str, subfolder: str, tables_out_path: str):
         """
