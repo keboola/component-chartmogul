@@ -2,11 +2,13 @@ import asyncio
 import json
 import os
 import uuid
+from os.path import dirname
+from pathlib import Path
 from urllib.parse import urljoin
 
 from httpx import HTTPStatusError
 from keboola.http_client.async_client import AsyncHttpClient
-from keboola.json_to_csv import Parser
+from keboola.json_to_csv import Parser, TableMapping
 
 CHARTMOGUL_BASEURL = 'https://api.chartmogul.com/v1/'
 
@@ -53,10 +55,14 @@ class ChartMogulClient(AsyncHttpClient):
         self.incremental = incremental
         self.state = state
         self.batch_size = batch_size
+        mappings = Path(os.path.abspath(__file__)).parent.joinpath('mappings.json').as_posix()
+        self._table_mappings = json.load(open(mappings))
 
     async def fetch(self, endpoint, additional_params=None):
 
         endpoint_config = CHARTMOGUL_ENDPOINT_CONFIGS[endpoint]
+        table_mapping = TableMapping.build_from_legacy_mapping({endpoint: self._table_mappings[endpoint]})
+        parser = Parser(main_table_name=endpoint, table_mapping=table_mapping, analyze_further=True)
 
         if endpoint == 'customers':
             return await self._fetch_customers()
@@ -64,27 +70,27 @@ class ChartMogulClient(AsyncHttpClient):
         if endpoint == 'customers_subscriptions':
             customer_uuids = await self._fetch_customers(save_results=False)
             async for results in self._fetch_customers_subscriptions(customer_uuids):
-                parser = Parser(main_table_name=endpoint, analyze_further=True)
                 parsed = parser.parse_data(results)
                 await self.save_result(parsed)
+            return parser.table_mapping
 
         elif endpoint == 'activities':
             async for results in self._fetch_activities(endpoint, endpoint_config, additional_params):
-                parser = Parser(main_table_name=endpoint, analyze_further=True)
                 parsed = parser.parse_data(results)
                 await self.save_result(parsed)
+            return parser.table_mapping
 
         elif endpoint == 'key_metrics':
             async for results in self._fetch_key_metrics(endpoint, additional_params):
-                parser = Parser(main_table_name=endpoint, analyze_further=True)
                 parsed = parser.parse_data(results)
                 await self.save_result(parsed)
+            return parser.table_mapping
 
         elif endpoint == 'invoices':
             async for results in self._fetch_invoices(endpoint):
-                parser = Parser(main_table_name=endpoint, analyze_further=True)
                 parsed = parser.parse_data(results)
                 await self.save_result(parsed)
+            return parser.table_mapping
 
     async def save_result(self, results: dict):
         for result in results:

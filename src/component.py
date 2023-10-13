@@ -10,8 +10,9 @@ from keboola.component.exceptions import UserException
 from keboola.csvwriter import ElasticDictWriter
 
 import chartmogul
+from keboola.json_to_csv import TableMapping
+
 from chartmogul_client.client import ChartMogulClient, ChartMogulClientException
-from chartmogul_client.mapping import pkeys_mapping
 
 # configuration variables
 KEY_API_TOKEN = '#api_token'
@@ -74,13 +75,13 @@ class Component(ComponentBase):
         # Process endpoint
         endpoint = params.get(KEY_ENDPOINTS)
         try:
-            asyncio.run(cm_client.fetch(endpoint=endpoint, additional_params=additional_params))
+            result_mapping = asyncio.run(cm_client.fetch(endpoint=endpoint, additional_params=additional_params))
         except ChartMogulClientException as e:
             raise UserException(f"Failed to fetch data from endpoint {endpoint}, exception: {e}")
 
         if os.path.isdir(temp_path):
             for subfolder in os.listdir(temp_path):
-                self.process_subfolder(temp_path, subfolder, self.tables_out_path)
+                self.process_subfolder(temp_path, subfolder, self.tables_out_path, result_mapping)
 
         # Updating state
         new_statefile = cm_client.state  # load state related data from current run
@@ -96,7 +97,7 @@ class Component(ComponentBase):
         # Clean temp folder (primarily for local runs)
         shutil.rmtree(temp_path)
 
-    def process_subfolder(self, temp_path: str, subfolder: str, tables_out_path: str):
+    def process_subfolder(self, temp_path: str, subfolder: str, tables_out_path: str, result_mapping: TableMapping):
         """
         Process a subfolder containing JSON files, write valid rows to an output table, and update state information.
 
@@ -119,7 +120,9 @@ class Component(ComponentBase):
         if self.are_files_in_directory(subfolder_path):
 
             out_table_path = os.path.join(tables_out_path, subfolder)
-            fieldnames = self.state_columns.get(subfolder, [])
+            # TODO: pick tableMapping from the childtable tree according to table name and set result_mapping
+
+            fieldnames = self.state_columns.get(subfolder, list(result_mapping.column_mappings.keys()))
 
             with ElasticDictWriter(out_table_path, fieldnames) as wr:
                 wr.writeheader()
@@ -135,7 +138,7 @@ class Component(ComponentBase):
                                 valid_rows = True
 
             if valid_rows:
-                pk = pkeys_mapping.get(subfolder, [])
+                pk = result_mapping.primary_keys
                 table = self.create_out_table_definition(subfolder, is_sliced=True, primary_key=pk)
                 self.state_columns[subfolder] = wr.fieldnames
                 self.write_manifest(table)
