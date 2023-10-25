@@ -2,7 +2,6 @@ import asyncio
 import json
 import os
 import uuid
-from os.path import dirname
 from pathlib import Path
 from urllib.parse import urljoin
 
