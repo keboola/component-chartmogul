@@ -105,6 +105,7 @@ class Component(ComponentBase):
             temp_path (str): The path to the temporary directory containing the subfolder.
             subfolder (str): The name of the subfolder to process.
             tables_out_path (str): The path to the directory where output tables will be saved.
+            result_mapping (TableMapping): TableMapping returned by fetch method of ChartMogul client.
 
         Returns:
             None
