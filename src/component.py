@@ -10,7 +10,6 @@ from keboola.component.exceptions import UserException
 from keboola.csvwriter import ElasticDictWriter
 
 import chartmogul
-from keboola.json_to_csv import TableMapping
 
 from chartmogul_client.client import ChartMogulClient, ChartMogulClientException
 
