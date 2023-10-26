@@ -12,6 +12,7 @@ from keboola.csvwriter import ElasticDictWriter
 import chartmogul
 
 from chartmogul_client.client import ChartMogulClient, ChartMogulClientException
+from chartmogul_client.mappings import pkeys_map
 
 # configuration variables
 KEY_API_TOKEN = '#api_token'
@@ -114,9 +115,9 @@ class Component(ComponentBase):
 
             out_table_path = os.path.join(tables_out_path, subfolder)
             mapping = self.extract_table_details(result_mapping)
-
             fieldnames = mapping.get(subfolder, {}).get("columns", [])
-            pk = mapping.get(subfolder, {}).get("primary_keys", [])
+
+            pk = pkeys_map.get(subfolder, [])
 
             with ElasticDictWriter(out_table_path, fieldnames) as wr:
                 wr.writeheader()
@@ -220,7 +221,7 @@ class Component(ComponentBase):
 
         # Store columns and primary keys for the current table
         output[current_table_name] = {
-            "columns": list(data["column_mappings"].keys()),
+            "columns": list(data["column_mappings"].values()),
             "primary_keys": data["primary_keys"]
         }
 

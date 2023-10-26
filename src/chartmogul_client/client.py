@@ -73,6 +73,9 @@ class ChartMogulClient(AsyncHttpClient):
             if customer_uuids:
                 async for results in self._fetch_customers_subscriptions(customer_uuids):
                     parsed = self.parser.parse_data(results)
+                    print(results)
+                    print(parsed)
+                    exit()
                     await self.save_result(parsed)
             else:
                 raise ChartMogulClientException("Cannot fetch customer subscriptions, reason: No customers found.")
