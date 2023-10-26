@@ -150,7 +150,7 @@ class ChartMogulClient(AsyncHttpClient):
         endpoint_params = {'per_page': 200}
         last_uuid = ''
         if self.state and self.incremental:
-            endpoint_params['start-after'] = self.state.get('start-after')
+            endpoint_params['start-after'] = self.state.get(endpoint).get('start-after', "")
         else:
             for p in additional_params:
                 if additional_params[p]:

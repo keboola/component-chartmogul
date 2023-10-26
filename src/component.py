@@ -16,14 +16,14 @@ from chartmogul_client.client import ChartMogulClient, ChartMogulClientException
 # configuration variables
 KEY_API_TOKEN = '#api_token'
 KEY_INCREMENTAL_LOAD = 'incrementalLoad'
-KEY_ENDPOINTS = 'endpoints'
+KEY_ENDPOINT = 'endpoints'
 
 # list of mandatory parameters => if some is missing,
 # component will fail with readable message on initialization.
 REQUIRED_PARAMETERS = [
     KEY_API_TOKEN,
     KEY_INCREMENTAL_LOAD,
-    KEY_ENDPOINTS
+    KEY_ENDPOINT
 ]
 REQUIRED_IMAGE_PARS = []
 
@@ -36,20 +36,18 @@ class Component(ComponentBase):
 
     def run(self):
         params = self.configuration.parameters
+        endpoint = params.get(KEY_ENDPOINT)
+        previous_state = self.get_state_file()
 
         # Setting up additional params
-        if params.get(KEY_ENDPOINTS) == 'activities':
-            additional_params = params.get('additional_params_activities', {})
-        elif params.get(KEY_ENDPOINTS) == 'key_metrics':
-            additional_params = params.get('additional_params_key_metrics', {})
+        if endpoint in ['activities', 'key_metrics']:
+            additional_params = previous_state.get(endpoint, {})
         else:
             additional_params = {}
 
         # Validating user inputs
         self.validate_params(params)
 
-        # Previous state
-        previous_state = self.get_state_file()
         self.state_columns = previous_state.get("columns", {})
 
         # Parse date into the required format
@@ -68,7 +66,6 @@ class Component(ComponentBase):
             destination=temp_path)
 
         # Process endpoint
-        endpoint = params.get(KEY_ENDPOINTS)
         try:
             result_mapping = asyncio.run(cm_client.fetch(endpoint=endpoint, additional_params=additional_params))
         except ChartMogulClientException as e:
@@ -172,7 +169,7 @@ class Component(ComponentBase):
 
     @staticmethod
     def get_validated_endpoints(params):
-        endpoint = params.get(KEY_ENDPOINTS)
+        endpoint = params.get(KEY_ENDPOINT)
         if not endpoint:
             raise UserException('Please select an endpoint.')
         return endpoint
