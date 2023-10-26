@@ -36,10 +36,6 @@ class Component(ComponentBase):
         self.state_columns = {}
 
     def run(self):
-        '''
-        Main execution code
-        '''
-
         params = self.configuration.parameters
 
         # Setting up additional params
@@ -97,7 +93,7 @@ class Component(ComponentBase):
         # Clean temp folder (primarily for local runs)
         shutil.rmtree(temp_path)
 
-    def process_subfolder(self, temp_path: str, subfolder: str, tables_out_path: str, result_mapping: TableMapping):
+    def process_subfolder(self, temp_path: str, subfolder: str, tables_out_path: str, result_mapping: dict):
         """
         Process a subfolder containing JSON files, write valid rows to an output table, and update state information.
 
@@ -105,7 +101,7 @@ class Component(ComponentBase):
             temp_path (str): The path to the temporary directory containing the subfolder.
             subfolder (str): The name of the subfolder to process.
             tables_out_path (str): The path to the directory where output tables will be saved.
-            result_mapping (TableMapping): TableMapping returned by fetch method of ChartMogul client.
+            result_mapping (dict): TableMapping dict returned by fetch method of ChartMogul client.
 
         Returns:
             None
@@ -123,8 +119,7 @@ class Component(ComponentBase):
             out_table_path = os.path.join(tables_out_path, subfolder)
             # TODO: pick tableMapping from the childtable tree according to table name and set result_mapping
 
-            fieldnames = self.state_columns.get(subfolder, list(result_mapping.column_mappings.keys()))
-
+            fieldnames = self.state_columns.get(subfolder, list(result_mapping['column_mappings'].values()))
             with ElasticDictWriter(out_table_path, fieldnames) as wr:
                 wr.writeheader()
 
@@ -139,7 +134,7 @@ class Component(ComponentBase):
                                 valid_rows = True
 
             if valid_rows:
-                pk = result_mapping.primary_keys
+                pk = result_mapping.get("primary_keys", [])
                 table = self.create_out_table_definition(subfolder, is_sliced=True, primary_key=pk)
                 self.state_columns[subfolder] = wr.fieldnames
                 self.write_manifest(table)
