@@ -113,9 +113,11 @@ class Component(ComponentBase):
         if self.are_files_in_directory(subfolder_path):
 
             out_table_path = os.path.join(tables_out_path, subfolder)
-            # TODO: pick tableMapping from the childtable tree according to table name and set result_mapping
+            mapping = self.extract_table_details(result_mapping)
 
-            fieldnames = self.state_columns.get(subfolder, list(result_mapping['column_mappings'].values()))
+            fieldnames = mapping.get(subfolder, {}).get("columns", [])
+            pk = mapping.get(subfolder, {}).get("primary_keys", [])
+
             with ElasticDictWriter(out_table_path, fieldnames) as wr:
                 wr.writeheader()
 
@@ -130,7 +132,6 @@ class Component(ComponentBase):
                                 valid_rows = True
 
             if valid_rows:
-                pk = result_mapping.get("primary_keys", [])
                 table = self.create_out_table_definition(subfolder, is_sliced=True, primary_key=pk)
                 self.state_columns[subfolder] = wr.fieldnames
                 self.write_manifest(table)
@@ -210,6 +211,24 @@ class Component(ComponentBase):
 
         if day_diff < 0:
             raise UserException('[Start Date] cannot exceed [End Date]')
+
+    def extract_table_details(self, data, parent_prefix=''):
+        output = {}
+
+        # Get the current table name with any necessary prefixes
+        current_table_name = parent_prefix + data["table_name"]
+
+        # Store columns and primary keys for the current table
+        output[current_table_name] = {
+            "columns": list(data["column_mappings"].keys()),
+            "primary_keys": data["primary_keys"]
+        }
+
+        # If there are child tables, extract details recursively for each child table
+        for child_name, child_data in data["child_tables"].items():
+            output.update(self.extract_table_details(child_data, current_table_name + "_"))
+
+        return output
 
 
 """
