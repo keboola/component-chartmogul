@@ -68,7 +68,7 @@ class ChartMogulClient(AsyncHttpClient):
         if endpoint == 'customers':
             await self._fetch_customers()
 
-        if endpoint == 'customers_subscriptions':
+        elif endpoint == 'customers_subscriptions':
             customer_uuids = await self._fetch_customers(save_results=False)
             if customer_uuids:
                 async for results in self._fetch_customers_subscriptions(customer_uuids):
@@ -217,14 +217,13 @@ class ChartMogulClient(AsyncHttpClient):
         results = []
         r = await self._get(endpoint_url, params=params)
         data = r.get(CHARTMOGUL_ENDPOINT_CONFIGS["customers"]["dataType"], {})
-        if r:
+        if data:
             parsed = parser.parse_data(data)
             if save_results:
                 await self.save_result(parsed)
 
             for customer in parsed.get("customers", []):
                 results.append(customer.get("uuid"))
-
         return results
 
     async def _get(self, endpoint: str, params=None) -> dict:
