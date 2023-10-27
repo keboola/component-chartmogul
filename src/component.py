@@ -43,6 +43,7 @@ class Component(ComponentBase):
         endpoint = params.get(KEY_ENDPOINT)
         previous_state = self.get_state_file()
         self.state_columns = previous_state.get("columns", {})
+        incremental = params.get(KEY_INCREMENTAL_LOAD)
 
         # Setting up additional params
         if endpoint in ['activities', 'key_metrics']:
@@ -64,7 +65,7 @@ class Component(ComponentBase):
         # Custom ChartMogul client
         cm_client = ChartMogulClient(
             api_token=params.get(KEY_API_TOKEN),
-            incremental=params.get(KEY_INCREMENTAL_LOAD),
+            incremental=incremental,
             state=previous_state,
             destination=temp_path)
 
@@ -76,7 +77,7 @@ class Component(ComponentBase):
 
         if os.path.isdir(temp_path):
             for subfolder in os.listdir(temp_path):
-                self.process_subfolder(temp_path, subfolder, self.tables_out_path, result_mapping)
+                self.process_subfolder(temp_path, subfolder, self.tables_out_path, result_mapping, incremental)
 
         # Updating state
         new_statefile = cm_client.state  # load state related data (params) from current run
@@ -92,7 +93,8 @@ class Component(ComponentBase):
         # Clean temp folder (primarily for local runs)
         shutil.rmtree(temp_path)
 
-    def process_subfolder(self, temp_path: str, subfolder: str, tables_out_path: str, result_mapping: dict):
+    def process_subfolder(self, temp_path: str, subfolder: str, tables_out_path: str, result_mapping: dict,
+                          incremental: bool):
         """
         Process a subfolder containing JSON files, write valid rows to an output table, and update state information.
 
@@ -101,6 +103,7 @@ class Component(ComponentBase):
             subfolder (str): The name of the subfolder to process.
             tables_out_path (str): The path to the directory where output tables will be saved.
             result_mapping (dict): TableMapping dict returned by fetch method of ChartMogul client.
+            incremental (bool): Defines manifest increment value.
 
         Returns:
             None
@@ -135,7 +138,8 @@ class Component(ComponentBase):
                                 valid_rows = True
 
             if valid_rows:
-                table = self.create_out_table_definition(subfolder, is_sliced=True, primary_key=pk)
+                table = self.create_out_table_definition(subfolder, is_sliced=True, primary_key=pk,
+                                                         incremental=incremental)
                 self.state_columns[subfolder] = wr.fieldnames
                 self.write_manifest(table)
             else:
