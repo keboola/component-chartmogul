@@ -74,6 +74,7 @@ class Component(ComponentBase):
 
         # Process endpoint
         try:
+            logging.info(f"Processing endpoint: {endpoint}")
             result_mapping = asyncio.run(cm_client.fetch(endpoint=endpoint, additional_params=additional_params))
         except ChartMogulClientException as e:
             raise UserException(f"Failed to fetch data from endpoint {endpoint}, exception: {e}")
