@@ -50,7 +50,8 @@ class ChartMogulClient(AsyncHttpClient):
                          auth=(api_token, ''),
                          retries=5,
                          retry_status_codes=[402, 429, 500, 502, 503, 504],
-                         max_requests_per_second=MAX_REQUESTS_PER_SECOND)
+                         max_requests_per_second=MAX_REQUESTS_PER_SECOND,
+                         debug=debug)
 
         # Request parameters
         self.parser = None
@@ -60,10 +61,6 @@ class ChartMogulClient(AsyncHttpClient):
         self.batch_size = batch_size
         mappings = Path(os.path.abspath(__file__)).parent.joinpath('mappings.json').as_posix()
         self._table_mappings = json.load(open(mappings))
-
-        # workaround to supress log messages from httpx _client
-        if not debug:
-            logging.getLogger("httpx").setLevel(logging.WARNING)
 
     async def fetch(self, endpoint, additional_params=None) -> dict:
 
