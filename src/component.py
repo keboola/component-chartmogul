@@ -18,6 +18,7 @@ from chartmogul_client.mappings import pkeys_map
 KEY_API_TOKEN = '#api_token'
 KEY_INCREMENTAL_LOAD = 'incrementalLoad'
 KEY_ENDPOINT = 'endpoints'
+KEY_ADDITIONAL_PARAMS = 'additional_params_'
 
 # list of mandatory parameters => if some is missing,
 # component will fail with readable message on initialization.
@@ -37,19 +38,20 @@ class Component(ComponentBase):
 
     def run(self):
         params = self.configuration.parameters
+        self.validate_params(params)
+
         endpoint = params.get(KEY_ENDPOINT)
         previous_state = self.get_state_file()
+        self.state_columns = previous_state.get("columns", {})
 
         # Setting up additional params
         if endpoint in ['activities', 'key_metrics']:
             additional_params = previous_state.get(endpoint, {})
+            if not additional_params:
+                additional_params = params.get(KEY_ADDITIONAL_PARAMS+endpoint, {})
+            logging.info(f"Using additional params: {additional_params}")
         else:
             additional_params = {}
-
-        # Validating user inputs
-        self.validate_params(params)
-
-        self.state_columns = previous_state.get("columns", {})
 
         # Parse date into the required format
         if additional_params.get('start-date'):
@@ -77,7 +79,7 @@ class Component(ComponentBase):
                 self.process_subfolder(temp_path, subfolder, self.tables_out_path, result_mapping)
 
         # Updating state
-        new_statefile = cm_client.state  # load state related data from current run
+        new_statefile = cm_client.state  # load state related data (params) from current run
 
         if "columns" not in new_statefile:
             new_statefile["columns"] = {}

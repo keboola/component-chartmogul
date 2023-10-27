@@ -55,7 +55,7 @@
             "propertyOrder": 400
         },
         "additional_params_key_metrics": {
-            "title": "Additional Query Paramters",
+            "title": "Additional Query Parameters",
             "type": "object",
             "options": {
                 "dependencies": {
