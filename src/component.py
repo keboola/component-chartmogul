@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import shutil
+import time
 
 from keboola.component.base import ComponentBase
 from keboola.component.exceptions import UserException
@@ -21,14 +22,11 @@ KEY_ENDPOINT = 'endpoints'
 KEY_ADDITIONAL_PARAMS = 'additional_params_'
 KEY_DEBUG = 'debug'
 
-# list of mandatory parameters => if some is missing,
-# component will fail with readable message on initialization.
 REQUIRED_PARAMETERS = [
     KEY_API_TOKEN,
     KEY_INCREMENTAL_LOAD,
     KEY_ENDPOINT
 ]
-REQUIRED_IMAGE_PARS = []
 
 
 class Component(ComponentBase):
@@ -38,6 +36,7 @@ class Component(ComponentBase):
         self.state_columns = {}
 
     def run(self):
+        start_time = time.time()
         params = self.configuration.parameters
         debug = params.get(KEY_DEBUG, False)
         self.validate_params(params)
@@ -96,6 +95,13 @@ class Component(ComponentBase):
 
         # Clean temp folder (primarily for local runs)
         shutil.rmtree(temp_path)
+
+        # Measure the end time
+        end_time = time.time()
+
+        # Calculate and log the runtime
+        runtime = end_time - start_time
+        logging.info(f"Runtime: {runtime:.2f} seconds")
 
     def process_subfolder(self, temp_path: str, subfolder: str, tables_out_path: str, result_mapping: dict,
                           incremental: bool):
