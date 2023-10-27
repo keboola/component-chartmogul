@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 import os
 import uuid
 from pathlib import Path
@@ -43,7 +44,8 @@ class ChartMogulClientException(Exception):
 
 
 class ChartMogulClient(AsyncHttpClient):
-    def __init__(self, destination, api_token, incremental=False, state=None, batch_size: int = BATCH_SIZE):
+    def __init__(self, destination, api_token, incremental=False, state=None, batch_size: int = BATCH_SIZE,
+                 debug: bool = False):
         super().__init__(base_url=CHARTMOGUL_BASEURL,
                          auth=(api_token, ''),
                          retries=5,
@@ -58,6 +60,10 @@ class ChartMogulClient(AsyncHttpClient):
         self.batch_size = batch_size
         mappings = Path(os.path.abspath(__file__)).parent.joinpath('mappings.json').as_posix()
         self._table_mappings = json.load(open(mappings))
+
+        # workaround to supress log messages from httpx _client
+        if not debug:
+            logging.getLogger("httpx").setLevel(logging.WARNING)
 
     async def fetch(self, endpoint, additional_params=None) -> dict:
 

@@ -19,6 +19,7 @@ KEY_API_TOKEN = '#api_token'
 KEY_INCREMENTAL_LOAD = 'incrementalLoad'
 KEY_ENDPOINT = 'endpoints'
 KEY_ADDITIONAL_PARAMS = 'additional_params_'
+KEY_DEBUG = 'debug'
 
 # list of mandatory parameters => if some is missing,
 # component will fail with readable message on initialization.
@@ -38,6 +39,7 @@ class Component(ComponentBase):
 
     def run(self):
         params = self.configuration.parameters
+        debug = params.get(KEY_DEBUG, False)
         self.validate_params(params)
 
         endpoint = params.get(KEY_ENDPOINT)
@@ -67,7 +69,8 @@ class Component(ComponentBase):
             api_token=params.get(KEY_API_TOKEN),
             incremental=incremental,
             state=previous_state,
-            destination=temp_path)
+            destination=temp_path,
+            debug=debug)
 
         # Process endpoint
         try:
