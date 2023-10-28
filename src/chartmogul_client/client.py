@@ -35,8 +35,8 @@ CHARTMOGUL_ENDPOINT_CONFIGS = {
     }
 }
 
-BATCH_SIZE = 400
-MAX_REQUESTS_PER_SECOND = 40
+BATCH_SIZE = 80
+MAX_REQUESTS_PER_SECOND = 80
 
 
 class ChartMogulClientException(Exception):
@@ -123,10 +123,7 @@ class ChartMogulClient(AsyncHttpClient):
                 tasks.clear()
 
     async def _fetch_customer_subscriptions(self, customer_uuid) -> list:
-        endpoint_params = {
-            'page': 1,
-            'per_page': 200
-        }
+        endpoint_params = {}
 
         all_entries = []
         while True:
@@ -143,7 +140,7 @@ class ChartMogulClient(AsyncHttpClient):
             if not r.get('has_more'):
                 break
             else:
-                endpoint_params['page'] += 1
+                endpoint_params['cursor'] = r.get('cursor')
 
         return all_entries
 
