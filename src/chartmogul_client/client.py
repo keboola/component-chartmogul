@@ -35,8 +35,7 @@ CHARTMOGUL_ENDPOINT_CONFIGS = {
     }
 }
 
-BATCH_SIZE = 80
-MAX_REQUESTS_PER_SECOND = 40
+MAX_REQUESTS_PER_SECOND = BATCH_SIZE = 40
 
 
 class ChartMogulClientException(Exception):
