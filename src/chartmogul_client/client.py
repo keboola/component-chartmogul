@@ -53,6 +53,7 @@ class ChartMogulClient(AsyncHttpClient):
                          debug=debug)
 
         # Request parameters
+        self.processed_records = 0
         self.parser = None
         self.destination = destination
         self.incremental = incremental
@@ -140,6 +141,11 @@ class ChartMogulClient(AsyncHttpClient):
                 break
             else:
                 endpoint_params['cursor'] = r.get('cursor')
+
+        self.processed_records += 1
+
+        if self.processed_records % 1000 == 0:
+            print(f"Fetched {self.processed_records} customer subscriptions.")
 
         return all_entries
 
