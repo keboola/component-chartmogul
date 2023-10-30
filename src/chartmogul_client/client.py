@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 import os
 import uuid
 from pathlib import Path
@@ -145,7 +146,7 @@ class ChartMogulClient(AsyncHttpClient):
         self.processed_records += 1
 
         if self.processed_records % 1000 == 0:
-            print(f"Fetched {self.processed_records} customer subscriptions.")
+            logging.info(f"Fetched {self.processed_records} customer subscriptions.")
 
         return all_entries
 
