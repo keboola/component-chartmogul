@@ -36,8 +36,7 @@ CHARTMOGUL_ENDPOINT_CONFIGS = {
     }
 }
 
-MAX_REQUESTS_PER_SECOND = 5
-BATCH_SIZE = 50
+MAX_REQUESTS_PER_SECOND = BATCH_SIZE = 40
 
 
 class ChartMogulClientException(Exception):
@@ -52,6 +51,7 @@ class ChartMogulClient(AsyncHttpClient):
                          retries=5,
                          retry_status_codes=[402, 429, 500, 502, 503, 504],
                          max_requests_per_second=MAX_REQUESTS_PER_SECOND,
+                         timeout=10,
                          debug=debug)
 
         # Request parameters
