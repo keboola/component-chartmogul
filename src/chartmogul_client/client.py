@@ -100,7 +100,7 @@ class ChartMogulClient(AsyncHttpClient):
         else:
             raise ChartMogulClientException(f"Unsupported endpoint: {endpoint}")
 
-        return self.parser.get_table_mapping().as_dict()
+        return self.parser.table_mapping.as_dict()
 
     async def save_result(self, results: dict) -> None:
         for result in results:
