@@ -192,8 +192,16 @@ class ChartMogulClient(AsyncHttpClient):
     async def _fetch_invoices(self, endpoint) -> AsyncIterable:
         endpoint_url = urljoin(CHARTMOGUL_BASEURL, CHARTMOGUL_ENDPOINT_CONFIGS[endpoint]["endpoint"])
 
-        r = await self._get(endpoint_url)
-        yield r.get(CHARTMOGUL_ENDPOINT_CONFIGS[endpoint]["dataType"], {})
+        endpoint_params = {}
+
+        while True:
+            r = await self._get(endpoint_url, params=endpoint_params)
+            yield r.get(CHARTMOGUL_ENDPOINT_CONFIGS[endpoint]["dataType"], {})
+
+            if not r.get('has_more'):
+                break
+            else:
+                endpoint_params['cursor'] = r.get('cursor')
 
     async def _fetch_customers(self, save_results: bool = True) -> list:
         customer_uuids = []
