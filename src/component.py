@@ -4,7 +4,6 @@ import json
 import logging
 import os
 import shutil
-import time
 
 from keboola.component.base import ComponentBase
 from keboola.component.exceptions import UserException
@@ -36,7 +35,6 @@ class Component(ComponentBase):
         self.state_columns = {}
 
     def run(self):
-        start_time = time.time()
         params = self.configuration.parameters
         debug = params.get(KEY_DEBUG, False)
         self.validate_params(params)
@@ -63,7 +61,6 @@ class Component(ComponentBase):
 
         temp_path = os.path.join(self.data_folder_path, "temp")
 
-        # Custom ChartMogul client
         cm_client = ChartMogulClient(
             api_token=params.get(KEY_API_TOKEN),
             incremental=incremental,
@@ -82,8 +79,7 @@ class Component(ComponentBase):
             for subfolder in os.listdir(temp_path):
                 self.process_subfolder(temp_path, subfolder, self.tables_out_path, result_mapping, incremental)
 
-        # Updating state
-        new_statefile = cm_client.state  # load state related data (params) from current run
+        new_statefile = cm_client.state
 
         if "columns" not in new_statefile:
             new_statefile["columns"] = {}
@@ -95,13 +91,6 @@ class Component(ComponentBase):
 
         # Clean temp folder (primarily for local runs)
         shutil.rmtree(temp_path)
-
-        # Measure the end time
-        end_time = time.time()
-
-        # Calculate and log the runtime
-        runtime = end_time - start_time
-        logging.info(f"Runtime: {runtime:.2f} seconds")
 
     def process_subfolder(self, temp_path: str, subfolder: str, tables_out_path: str, result_mapping: dict,
                           incremental: bool):
