@@ -179,8 +179,8 @@ class ChartMogulClient(AsyncHttpClient):
 
     async def _fetch_key_metrics(self, endpoint, additional_params) -> AsyncIterable:
         endpoint_url = urljoin(CHARTMOGUL_BASEURL, CHARTMOGUL_ENDPOINT_CONFIGS[endpoint]["endpoint"])
-
         endpoint_params = {}
+
         for p in additional_params:
             if additional_params[p]:
                 endpoint_params[p] = additional_params[p]
@@ -191,7 +191,6 @@ class ChartMogulClient(AsyncHttpClient):
 
     async def _fetch_invoices(self, endpoint) -> AsyncIterable:
         endpoint_url = urljoin(CHARTMOGUL_BASEURL, CHARTMOGUL_ENDPOINT_CONFIGS[endpoint]["endpoint"])
-
         endpoint_params = {}
 
         while True:

@@ -7,6 +7,7 @@
     "properties": {
         "#api_token": {
             "type": "string",
+            "format": "password",
             "title": "API Token",
             "propertyOrder": 100
         }
