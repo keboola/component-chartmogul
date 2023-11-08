@@ -110,6 +110,7 @@ class ChartMogulClient(AsyncHttpClient):
             full_path = os.path.join(path, f"{uuid.uuid4()}.json")
             with open(full_path, "w") as json_file:
                 json.dump(results.get(result), json_file, indent=4)
+        self.parser._csv_file_results = {}
 
     async def _fetch_customers_subscriptions(self, customer_uuids) -> AsyncIterable:
         tasks = []
