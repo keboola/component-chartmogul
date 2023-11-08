@@ -147,7 +147,7 @@ class ChartMogulClient(AsyncHttpClient):
 
         self.processed_records += 1
 
-        if self.processed_records % 100 == 0:
+        if self.processed_records % 1000 == 0:
             logging.info(f"Fetched {self.processed_records} customer subscriptions.")
 
         return all_entries
