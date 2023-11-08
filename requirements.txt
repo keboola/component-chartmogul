@@ -1,7 +1,7 @@
 keboola.component==1.4.3
 git+https://github.com/SgtMarmite/python-http-client.git@async-http-client
 keboola.utils
-keboola.json-to-csv==0.0.11
+keboola.json-to-csv==0.0.12
 mock
 freezegun
 backoff
