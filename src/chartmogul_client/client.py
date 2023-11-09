@@ -187,7 +187,6 @@ class ChartMogulClient(AsyncHttpClient):
 
         r = await self._get(endpoint_url, params=endpoint_params)
         yield r.get(CHARTMOGUL_ENDPOINT_CONFIGS[endpoint]["dataType"], {})
-        self.state = {endpoint: endpoint_params}
 
     async def _fetch_invoices(self, endpoint) -> AsyncIterable:
         endpoint_url = urljoin(CHARTMOGUL_BASEURL, CHARTMOGUL_ENDPOINT_CONFIGS[endpoint]["endpoint"])
