@@ -44,9 +44,11 @@ class Component(ComponentBase):
         self.state_columns = previous_state.get("columns", {})
         incremental = params.get(KEY_INCREMENTAL_LOAD)
 
-        # Setting up additional params
+        # Setting up additional params (on key_metrics endpoint actually uses statefile data)
+        additional_params = {}
         if endpoint in ['activities', 'key_metrics']:
-            additional_params = previous_state.get(endpoint, {})
+            if incremental:
+                additional_params = previous_state.get(endpoint, {})
             if not additional_params:
                 additional_params = params.get(KEY_ADDITIONAL_PARAMS+endpoint, {})
             logging.info(f"Using additional params: {additional_params}")
