@@ -65,7 +65,6 @@ class ChartMogulClient(AsyncHttpClient):
 
     async def fetch(self, endpoint, additional_params=None) -> dict:
 
-        endpoint_config = CHARTMOGUL_ENDPOINT_CONFIGS[endpoint]
         table_mapping = TableMapping.build_from_legacy_mapping({endpoint: self._table_mappings[endpoint]})
         self.parser = Parser(main_table_name=endpoint, table_mapping=table_mapping, analyze_further=True)
 
@@ -82,7 +81,7 @@ class ChartMogulClient(AsyncHttpClient):
                 raise ChartMogulClientException("Cannot fetch customer subscriptions, reason: No customers found.")
 
         elif endpoint == 'activities':
-            async for results in self._fetch_activities(endpoint, endpoint_config, additional_params):
+            async for results in self._fetch_activities(endpoint, additional_params):
                 parsed = self.parser.parse_data(results)
                 await self.save_result(parsed)
 
@@ -151,11 +150,10 @@ class ChartMogulClient(AsyncHttpClient):
 
         return all_entries
 
-    async def _fetch_activities(self, endpoint, endpoint_config, additional_params) -> AsyncIterable:
+    async def _fetch_activities(self, endpoint, additional_params) -> AsyncIterable:
         endpoint_url = urljoin(CHARTMOGUL_BASEURL, endpoint)
 
         endpoint_params = {'per_page': 200}
-        last_uuid = ''
         for p in additional_params:
             if additional_params[p]:
                 endpoint_params[p] = additional_params[p]
@@ -164,12 +162,10 @@ class ChartMogulClient(AsyncHttpClient):
             r = await self._get(endpoint_url, params=endpoint_params)
             yield r.get(CHARTMOGUL_ENDPOINT_CONFIGS[endpoint]["dataType"], {})
 
-            if r[endpoint_config['dataType']]:
-                last_uuid = r[endpoint_config['dataType']][-1]['uuid']
-            endpoint_params = {'start-after': last_uuid, 'per_page': 200}
-
             if not r.get('has_more'):
                 break
+            else:
+                endpoint_params['cursor'] = r.get('cursor')
 
     async def _fetch_key_metrics(self, endpoint, additional_params) -> AsyncIterable:
         endpoint_url = urljoin(CHARTMOGUL_BASEURL, CHARTMOGUL_ENDPOINT_CONFIGS[endpoint]["endpoint"])
