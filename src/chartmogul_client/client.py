@@ -59,7 +59,6 @@ class ChartMogulClient(AsyncHttpClient):
         self.parser = None
         self.destination = destination
         self.incremental = incremental
-        self.state = state
         self.batch_size = batch_size
         mappings = Path(os.path.abspath(__file__)).parent.joinpath('mappings.json').as_posix()
         self._table_mappings = json.load(open(mappings))
@@ -157,12 +156,9 @@ class ChartMogulClient(AsyncHttpClient):
 
         endpoint_params = {'per_page': 200}
         last_uuid = ''
-        if self.state and self.incremental:
-            endpoint_params['start-after'] = self.state.get(endpoint).get('start-after', "")
-        else:
-            for p in additional_params:
-                if additional_params[p]:
-                    endpoint_params[p] = additional_params[p]
+        for p in additional_params:
+            if additional_params[p]:
+                endpoint_params[p] = additional_params[p]
 
         while True:
             r = await self._get(endpoint_url, params=endpoint_params)
@@ -174,8 +170,6 @@ class ChartMogulClient(AsyncHttpClient):
 
             if not r.get('has_more'):
                 break
-
-        self.state = {endpoint: endpoint_params}
 
     async def _fetch_key_metrics(self, endpoint, additional_params) -> AsyncIterable:
         endpoint_url = urljoin(CHARTMOGUL_BASEURL, CHARTMOGUL_ENDPOINT_CONFIGS[endpoint]["endpoint"])

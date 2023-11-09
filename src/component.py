@@ -45,12 +45,8 @@ class Component(ComponentBase):
         incremental = params.get(KEY_INCREMENTAL_LOAD)
 
         # Setting up additional params (on key_metrics endpoint actually uses statefile data)
-        additional_params = {}
         if endpoint in ['activities', 'key_metrics']:
-            if incremental:
-                additional_params = previous_state.get(endpoint, {})
-            if not additional_params:
-                additional_params = params.get(KEY_ADDITIONAL_PARAMS+endpoint, {})
+            additional_params = params.get(KEY_ADDITIONAL_PARAMS+endpoint, {})
             logging.info(f"Using additional params: {additional_params}")
         else:
             additional_params = {}
@@ -81,13 +77,7 @@ class Component(ComponentBase):
             for subfolder in os.listdir(temp_path):
                 self.process_subfolder(temp_path, subfolder, self.tables_out_path, result_mapping, incremental)
 
-        new_statefile = cm_client.state
-
-        if "columns" not in new_statefile:
-            new_statefile["columns"] = {}
-
-        for table in self.state_columns:
-            new_statefile["columns"][table] = self.state_columns.get(table)
+        new_statefile = {"columns": {table: self.state_columns.get(table) for table in self.state_columns}}
 
         self.write_state_file(new_statefile)
 
@@ -139,8 +129,7 @@ class Component(ComponentBase):
                                 valid_rows = True
 
             if valid_rows:
-                table = self.create_out_table_definition(subfolder, is_sliced=True, primary_key=pk,
-                                                         incremental=incremental)
+                table = self.create_out_table_definition(subfolder, primary_key=pk, incremental=incremental)
                 self.state_columns[subfolder] = wr.fieldnames
                 self.write_manifest(table)
             else:
