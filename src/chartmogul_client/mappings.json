@@ -125,7 +125,7 @@
         "end-date": "end-date",
         "currency": "currency",
         "currency-sign": "currency-sign",
-        "plan_uuid": "plan_uuid",
+        "uuid": "plan_uuid",
         "data_source_uuid": "data_source_uuid",
         "cancellation_dates": {
             "type": "column",
@@ -134,10 +134,11 @@
                 "destination": "cancellation_dates"
             }
         },
-        "parent_uuid": {
-            "type": "user",
+        "customers_uuid": {
+            "type": "column",
             "mapping": {
-                "destination": "customers_uuid"
+                "destination": "customers_uuid",
+                "primaryKey": true
             }
         }
     },
