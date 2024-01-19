@@ -1,6 +1,6 @@
 # Chartmogul Extractor
 
-ChartMogul is the leading subscription analytics platform to measure, undertsand, and grow their recurring revenue.
+ChartMogul is the leading subscription analytics platform to measure, understand, and grow their recurring revenue.
 This component allows user to extract ChartMogul subscription data from the ChartMogul API. 
 
 **Table of Contents**
@@ -14,7 +14,7 @@ This component allows user to extract ChartMogul subscription data from the Char
 To run this component, API keys are required. API keys are required to be `Active` and contains `Read` as a minimum access level.
 
 #### Obtaining API Tokens
-    Follow path below:
+    Follow path below in your ChartMogul web app:
       1. [Profile] - bottom left corner of the platform
       2. [Admin]
       3. Click on the user you wish to authorize as
