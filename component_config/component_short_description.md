@@ -1,1 +1,1 @@
-The Leading Subcsription Analytics Platform to measure, undertsand, and grow their recurring revenue.
+ChartMogul is a real-time reporting and analytics solution for subscription businesses.
