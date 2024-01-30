@@ -1,3 +1,14 @@
+### Authorization
+
+To run this component, API keys are required. API keys are required to be `Active` and contains `Read` as a minimum access level.
+
+#### Obtaining API Tokens
+    Follow path below in your ChartMogul web app:
+      1. [Profile] - bottom left corner of the platform
+      2. [Admin]
+      3. Click on the user you wish to authorize as
+      4. API Keys
+
 ### Row configuration
   - Endpoint - [REQ]
       1. `activities`
