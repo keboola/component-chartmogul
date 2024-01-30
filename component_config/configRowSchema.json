@@ -1,6 +1,6 @@
 {
     "type": "object",
-    "title": "Row Configuration",
+    "title": "Row configuration",
     "required": [
         "endpoints",
         "incrementalLoad"
@@ -22,12 +22,12 @@
         },
         "incrementalLoad": {
             "type": "boolean",
-            "title": "Incremental Load",
+            "title": "Incremental load",
             "format": "checkbox",
             "propertyOrder": 200
         },
         "additional_params_activities": {
-            "title": "Additional Query Parameters",
+            "title": "Additional query parameters",
             "type": "object",
             "options": {
                 "dependencies": {
@@ -42,20 +42,20 @@
                 "start-date": {
                     "type": "string",
                     "title": "Start date",
-                    "description": "[Optional] - Example: 2021-01-01, 1 day ago, 2 weeks ago",
+                    "description": "[Optional] — Example: 2021-01-01, 1 day ago, 2 weeks ago",
                     "propertyOrder": 500
                 },
                 "end-date": {
                     "type": "string",
                     "title": "End date",
-                    "description": "[Optional] - Example: 2021-01-01, 1 day ago, 2 weeks ago",
+                    "description": "[Optional] — Example: 2021-01-01, 1 day ago, 2 weeks ago",
                     "propertyOrder": 600
                 }
             },
             "propertyOrder": 400
         },
         "additional_params_key_metrics": {
-            "title": "Additional Query Parameters",
+            "title": "Additional query parameters",
             "type": "object",
             "options": {
                 "dependencies": {
@@ -73,13 +73,13 @@
                 "start-date": {
                     "type": "string",
                     "title": "Start date",
-                    "description": "[Required] - Example: 2021-01-01, 1 day ago, 2 weeks ago",
+                    "description": "[Required] — Example: 2021-01-01, 1 day ago, 2 weeks ago",
                     "propertyOrder": 500
                 },
                 "end-date": {
                     "type": "string",
                     "title": "End date",
-                    "description": "[Required] - Example: 2021-01-01, 1 day ago, 2 weeks ago",
+                    "description": "[Required] — Example: 2021-01-01, 1 day ago, 2 weeks ago",
                     "propertyOrder": 600
                 },
                 "interval": {
@@ -96,13 +96,13 @@
                 "geo": {
                     "type": "string",
                     "title": "Geo",
-                    "description": "[Optional] A comma-separated list of ISO 3166-1 Alpha-2 formatted country codes to filter the results to, e.g. US,GB,DE.",
+                    "description": "[Optional] A comma-separated list of ISO 3166-1 Alpha-2 formatted country codes to filter the results (e.g., US, GB, DE).",
                     "propertyOrder": 800
                 },
                 "plans": {
                     "type": "string",
                     "title": "Plans",
-                    "description": "[Optional] A comma-separated list of plan names (as configured in your ChartMogul account) to filter the results to. Note that spaces must be url-encoded and the names are case-sensitive, e.g. Silver%20plan,Gold%20plan,Enterprise%20plan.",
+                    "description": "[Optional] A comma-separated list of plan names (as configured in your ChartMogul account) to filter the results. Note: Spaces must be URL-encoded and the names are case-sensitive (e.g., Silver%20plan,Gold%20plan,Enterprise%20plan).",
                     "propertyOrder": 900
                 }
             },
