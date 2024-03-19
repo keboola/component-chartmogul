@@ -193,34 +193,34 @@ class ChartMogulClient(AsyncHttpClient):
 
     async def _fetch_customers(self, save_results: bool = True) -> list:
         customer_uuids = []
-        done = False
-        i = 1
+        next_page_cursor = None
 
-        while not done:
-            tasks = [self._fetch_customers_page(i, save_results) for i in range(i, i + self.batch_size)]
-            i += self.batch_size
-
-            batch_results = await asyncio.gather(*tasks)
-
-            for result in batch_results:
-                customer_uuids.extend(result)
-                if not result:
-                    done = True
+        while True:
+            customer_uuids_page, next_page_cursor = await self._fetch_customers_page(next_page_cursor, save_results)
+            customer_uuids.extend(customer_uuids_page)
+            if next_page_cursor is None:
+                break
 
         return customer_uuids
 
-    async def _fetch_customers_page(self, page: int, save_results: bool = True) -> list:
+    async def _fetch_customers_page(self, next_page_cursor: str = None, save_results: bool = True) -> list:
         endpoint_url = urljoin(CHARTMOGUL_BASEURL, "customers")
         parser = self.parser if save_results else Parser(main_table_name="customers", analyze_further=True)
 
         params = {
-            'page': page,
-            'per_page': 200
+            'per_page': 200,
         }
 
+        if next_page_cursor is not None:
+            params['cursor'] = next_page_cursor
+
         results = []
+
         r = await self._get(endpoint_url, params=params)
         data = r.get(CHARTMOGUL_ENDPOINT_CONFIGS["customers"]["dataType"], {})
+
+        next_page_cursor = r.get('cursor', None)
+
         if data:
             parsed = parser.parse_data(data)
             if save_results:
@@ -228,7 +228,7 @@ class ChartMogulClient(AsyncHttpClient):
 
             for customer in parsed.get("customers", []):
                 results.append(customer.get("uuid"))
-        return results
+        return results, next_page_cursor
 
     async def _get(self, endpoint: str, params=None) -> dict:
         if params is None:
